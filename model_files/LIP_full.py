@@ -12,16 +12,16 @@ from brian2 import *
 start_scope()
 
 from scipy import signal
-from model_files.cells.RS_LIP import *
-from model_files.cells.FS_LIP import *
-from model_files.cells.SI_LIP import *
-from model_files.cells.IB_soma_LIP import *
-from model_files.cells.IB_axon_LIP import *
-from model_files.cells.IB_apical_dendrite_LIP import *
-from model_files.cells.IB_basal_dendrite_LIP import *
+from cells.RS_LIP import *
+from cells.FS_LIP import *
+from cells.SI_LIP import *
+from cells.IB_soma_LIP import *
+from cells.IB_axon_LIP import *
+from cells.IB_apical_dendrite_LIP import *
+from cells.IB_basal_dendrite_LIP import *
 
-from model_files.LIP_superficial_layer import *
-from model_files.LIP_beta1 import *
+from LIP_superficial_layer import *
+from LIP_beta1 import *
 
 import os
 
@@ -177,12 +177,16 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
     #defining input to the granular layer (from mdpul)
     # E_gran.ginp_RS_good=mdpul_input_amplitude
     # FS_gran.ginp_FS_good=mdpul_input_amplitude
-    E_gran.ginp_RS_good=mdpul_input_amplitude/2
-    FS_gran.ginp_FS_good=mdpul_input_amplitude/2
-    E_gran.ginp_RS_bad=mdpul_input_amplitude
-    FS_gran.ginp_FS_bad=mdpul_input_amplitude
+    E_gran.ginp_RS_good=3*mdpul_input_amplitude/4
+    FS_gran.ginp_FS_good=3*mdpul_input_amplitude/4
+    E_gran.ginp_RS_bad=3*mdpul_input_amplitude/4
+    FS_gran.ginp_FS_bad=3*mdpul_input_amplitude/4
+    E_gran.ginp_RS2=mdpul_input_amplitude/2
+    FS_gran.ginp_FS2=mdpul_input_amplitude/2
     
     inputs_mdpul=generate_spike_timing(N_FS,13*Hz,0*ms,end_time=10000*ms)
+    
+    inputs_8Hz=generate_spike_timing_theta(N_FS,40*Hz,0*ms,end_time=10000*ms,f_theta=8*Hz)
 
     if theta_phase=='mixed':
         t0=0*ms
@@ -201,6 +205,14 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
     bottomup_in2 = Synapses(Poisson_input2,E_gran, on_pre='Vinp=Vhigh')
     bottomup_in2.connect(j='i')
     
+    eightHz_input = SpikeGeneratorGroup(N_FS, inputs_8Hz[:,1], inputs_8Hz[:,0]*second)
+    eightHz_in = Synapses(eightHz_input, FS_gran, on_pre='Vinp2=Vhigh')
+    eightHz_in.connect(j='i')
+
+    eightHz_input2 = SpikeGeneratorGroup(N_FS, inputs_8Hz[:,1], inputs_8Hz[:,0]*second)
+    eightHz_in2 = Synapses(eightHz_input2, E_gran, on_pre='Vinp2=Vhigh')
+    eightHz_in2.connect(j='i')
+    
     #defining input to the deep layer (from FEFvm)
     if theta_phase=='good':
         inputs_topdown3=generate_spike_timing(N_SI,25*Hz,0*ms,end_time=5100*ms)
@@ -215,9 +227,9 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
         topdown_in3.connect(j='i')
     
     
-    g_inputs=[G_topdown2,G_topdown3,G_lateral,G_lateral2,Poisson_input,Poisson_input2]
+    g_inputs=[G_topdown2,G_topdown3,G_lateral,G_lateral2,Poisson_input,Poisson_input2,eightHz_input,eightHz_input2]
     g_inputs=[y for y in g_inputs if y]
-    syn_inputs=[topdown_in2,topdown_in3,lateral_in,lateral_in2,bottomup_in,bottomup_in2]
+    syn_inputs=[topdown_in2,topdown_in3,lateral_in,lateral_in2,bottomup_in,bottomup_in2,eightHz_in,eightHz_in2]
     syn_inputs=[y for y in syn_inputs if y]
     
 
@@ -521,8 +533,10 @@ if __name__=='__main__':
     all_theta=['good'] 
     all_t_SOM=[20*msecond]
     all_t_FS=[5*msecond]
+    # target_presentation_time=500*ms
+    # target_presence=False
 
-    simu=(target_presentation_time,0,t_SOM,t_FS,theta_phase,g_LIP_FEF_v,target_presence,runtime)
+    # simu=(target_presentation_time,0,all_t_SOM,all_t_FS,theta_phase,g_LIP_FEF_v,target_presence,runtime)
     
     path="./results_"+str(datetime.datetime.now())
     os.mkdir(path)

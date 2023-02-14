@@ -10,15 +10,15 @@ Created on Mon Dec  2 14:28:44 2019
 
 from brian2 import *
 from scipy import signal
-from model_files.cells.RS_LIP import *
-from model_files.cells.FS_LIP import *
-from model_files.cells.SI_LIP import *
-from model_files.cells.IB_soma_LIP import *
-from model_files.cells.IB_axon_LIP import *
-from model_files.cells.IB_apical_dendrite_LIP import *
-from model_files.cells.IB_basal_dendrite_LIP import *
+from cells.RS_LIP import *
+from cells.FS_LIP import *
+from cells.SI_LIP import *
+from cells.IB_soma_LIP import *
+from cells.IB_axon_LIP import *
+from cells.IB_apical_dendrite_LIP import *
+from cells.IB_basal_dendrite_LIP import *
 
-from model_files.LIP_superficial_layer import *
+from LIP_superficial_layer import *
 
 def create_beta1_network(t_SI,t_FS,Nf=1):
     #Defines the subnetwork of LIP responsible from the beta1 rhythm

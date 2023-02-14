@@ -8,13 +8,13 @@ Created on Mon Dec  2 14:28:44 2019
 
 from brian2 import *
 from scipy import signal
-from model_files.cells.RS_LIP import *
-from model_files.cells.FS_LIP import *
-from model_files.cells.SI_LIP import *
-from model_files.cells.IB_soma_LIP import *
-from model_files.cells.IB_axon_LIP import *
-from model_files.cells.IB_apical_dendrite_LIP import *
-from model_files.cells.IB_basal_dendrite_LIP import *
+from cells.RS_LIP import *
+from cells.FS_LIP import *
+from cells.SI_LIP import *
+from cells.IB_soma_LIP import *
+from cells.IB_axon_LIP import *
+from cells.IB_apical_dendrite_LIP import *
+from cells.IB_basal_dendrite_LIP import *
 
 
 def create_superficial_layer(t_SI,t_FS,Nf=1):

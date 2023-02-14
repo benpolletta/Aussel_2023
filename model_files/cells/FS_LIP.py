@@ -38,6 +38,11 @@ Iapp=sinp*ginp_FS*(V-Vrev_inp) : amp * meter ** -2
     ginp_FS = ginp_FS_good* int(sin(2*pi*t*8*Hz)>=0) + ginp_FS_bad* int(sin(2*pi*t*8*Hz)<0) : siemens * meter **-2 
     ginp_FS_good : siemens * meter **-2
     ginp_FS_bad : siemens * meter **-2  
+    
+Iapp2=sinp2*ginp_FS2*(V-Vrev_inp) : amp * meter ** -2
+    dsinp2/dt=-sinp2/taudinp2 + (1-sinp2)/taurinp2*0.5*(1+tanh(Vinp2/10/mV)) : 1
+    dVinp2/dt=1/tauinp2*(Vlow-Vinp2) : volt
+    ginp_FS2 : siemens * meter **-2
 '''
 
 
@@ -62,6 +67,9 @@ if __name__=='__main__' :
     taurinp=0.1*ms
     taudinp=0.5*ms
     tauinp=taudinp
+    taurinp2=0.1*ms
+    taudinp2=0.5*ms
+    tauinp2=taudinp2
     Vhigh=0*mV
     Vlow=-80*mV
     ginp_IB=0* msiemens * cm **-2

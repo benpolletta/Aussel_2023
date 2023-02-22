@@ -12,16 +12,16 @@ from brian2 import *
 start_scope()
 
 from scipy import signal
-from model_files.cells.RS_LIP import *
-from model_files.cells.FS_LIP import *
-from model_files.cells.SI_LIP import *
-from model_files.cells.IB_soma_LIP import *
-from model_files.cells.IB_axon_LIP import *
-from model_files.cells.IB_apical_dendrite_LIP import *
-from model_files.cells.IB_basal_dendrite_LIP import *
+from cells.RS_LIP import *
+from cells.FS_LIP import *
+from cells.SI_LIP import *
+from cells.IB_soma_LIP import *
+from cells.IB_axon_LIP import *
+from cells.IB_apical_dendrite_LIP import *
+from cells.IB_basal_dendrite_LIP import *
 
-from model_files.LIP_superficial_layer import *
-from model_files.LIP_beta1 import *
+from LIP_superficial_layer import *
+from LIP_beta1 import *
 
 import os
 

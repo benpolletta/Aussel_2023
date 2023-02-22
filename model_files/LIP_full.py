@@ -565,4 +565,4 @@ if __name__=='__main__':
             current_fig.savefig(new_path+'/figures/figure'+str(i)+'.png')
 
     
-    clear_cache('cython')    
+    #clear_cache('cython')    

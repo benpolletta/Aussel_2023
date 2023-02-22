@@ -11,8 +11,8 @@ from brian2 import *
 
 from scipy import signal
 
-from model_files.LIP_full import *
-from model_files.FEF_full import *
+from LIP_full import *
+from FEF_full import *
 
 from itertools import *
 from joblib import Parallel, delayed
@@ -345,6 +345,13 @@ if __name__=='__main__':
     
     os.mkdir(path)
     
+    t_SI=[20*msecond]
+    t_FS=[5*msecond]
+    theta_phase=['mixed']
+    g_LIP_FEF_v=[0.15 * msiemens * cm**-2]
+    target_on=[True]
+    runtime=[2*second]
+    
     N=50
     liste_target_time=[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
  
@@ -352,7 +359,7 @@ if __name__=='__main__':
     for t in liste_target_time:
         liste_simus+=[t]*N
     
-    liste_simus=[[liste_simus[i],i+750] for i in range(len(liste_simus))]
+    liste_simus=[[liste_simus[i], i+750, t_SI, t_FS, theta_phase, g_LIP_FEF_v, target_on, runtime] for i in range(len(liste_simus))]
     
     simus_pas_faites=list(range(700))
     
@@ -364,7 +371,7 @@ if __name__=='__main__':
 
     liste_simus.reverse()
     
-    print(liste_simus)
+    #print(liste_simus)
     
     print('Number of simulations: '+str(len(liste_simus)))
     

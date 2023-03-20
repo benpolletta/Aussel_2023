@@ -193,6 +193,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     noise_good=0* uA * cmeter ** -2
     noise_level=-30* uA * cmeter ** -2
     # noise_level=-40* uA * cmeter ** -2
+    noise_array=ones((200000,20))* noise_level
     if theta_phase=='mixed':
         t0,t1=125*ms,250*ms
         i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1
@@ -202,7 +203,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
             t0,t1=t0+250*ms,t1+250*ms
             i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1
             noise_array[i0:i1,:]=noise_level* rand(12500,20)
-            
+
     elif theta_phase=='good':
         noise_array=ones((200000,20))* noise_good
     elif theta_phase=='bad':

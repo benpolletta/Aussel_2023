@@ -35,6 +35,8 @@ def zeros_ones_monitor(spikemon,record_dt,runtime):
 
 def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
     
+    LIP_input = 0* msiemens * cm **-2
+    
     if theta_phase=='bad':
         LIP_input=3* msiemens * cm **-2
         

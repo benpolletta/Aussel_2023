@@ -351,12 +351,12 @@ if __name__=='__main__':
     theta_phase=['mixed']
     g_LIP_FEF_v=[0.15 * msiemens * cm**-2]
     target_on=[True]
-    runtime=[2*second]
+    runtime=2*second
     
     target_time=850*msecond#[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
  
     simu = [target_time, t_SI, t_FS, theta_phase, g_LIP_FEF_v, target_on, runtime]
     
-    FEF_and_LIP(simu,path)
+    FEF_and_LIP(simu,path,plot_raster=True)
 
 #    clear_cache('cython')

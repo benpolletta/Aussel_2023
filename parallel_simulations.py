@@ -1,5 +1,3 @@
-
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -44,7 +42,7 @@ path=""
 if os.name == 'nt':
     path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
 else :
-    path="/results_"+str(datetime.datetime.now())
+    path="results_"+str(datetime.datetime.now())
 
 os.mkdir(path)
 

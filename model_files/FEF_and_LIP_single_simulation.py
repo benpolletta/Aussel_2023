@@ -11,8 +11,12 @@ from brian2 import *
 
 from scipy import signal
 
-from LIP_full import *
-from FEF_full import *
+try:
+    from LIP_full import *
+    from FEF_full import *
+except:
+    from model_files.LIP_full import *
+    from model_files.FEF_full import *
 
 from itertools import *
 from joblib import Parallel, delayed

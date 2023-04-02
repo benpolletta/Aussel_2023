@@ -7,8 +7,9 @@ defaultclock.dt = 0.01*ms
 
 eq_RS_FEF='''
 dV/dt=1/C_RS*(-J-Isyn-Igap-Iran-Iapp-IL-INa-IK-IAR) : volt
-J = J_fixed+noise(t,i) : amp * meter ** -2
+J = J_fixed+noise : amp * meter ** -2
 J_fixed : amp * meter ** -2
+noise : amp * meter ** -2
 Isyn=IsynRS_FEF_VM+IsynSI_FEF_VM+IsynSI2_FEF_VM+IsynRS_FEF_V+IsynFS_FEF_V+Isyn_LIP+Isyn_mdPul : amp * meter ** -2
 IsynRS_FEF_VM : amp * meter ** -2
 IsynSI_FEF_VM : amp * meter ** -2
@@ -81,6 +82,9 @@ if __name__=='__main__' :
     taurinp=0.1*ms
     taudinp=0.5*ms
     tauinp=taudinp
+    tauinp3=taudinp
+    taurinp3=taurinp
+    taudinp3=taudinp
     Vhigh=0*mV
     Vlow=-80*mV
     ginp=0* msiemens * cm **-2
@@ -95,7 +99,7 @@ if __name__=='__main__' :
     RS.h = '0.56'
     RS.m = '0.038'
     RS.mAR = '0.01'
-    RS.J='-1 * uA * cmeter ** -2'
+    RS.J_fixed='-1 * uA * cmeter ** -2'
 
     
 #    Poisson_input = PoissonGroup(1,0.1/ms)

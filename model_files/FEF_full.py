@@ -147,6 +147,9 @@ if __name__=='__main__':
     print('Creating the network')
     N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm=[20]*5
     
+    t_SI=[20*ms]
+    t_FS=[5*ms]
+    
     theta_phase='mixed'
 #    theta_phase='good'
     target_on=True
@@ -157,7 +160,7 @@ if __name__=='__main__':
     net=Network()
     
 #    net,all_monitors=create_network(N_RS_vis,N_FS_vis,N_RS_mot,N_SI_mot,N_dSI_vm,N_RS_vm,N_gSI_vm,theta_phase,target_on,runtime)
-    all_neurons,all_synapses,all_monitors=create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,theta_phase,target_on,runtime,target_time)
+    all_neurons,all_synapses,all_monitors=create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,target_on,runtime,target_time)
     
     net.add(all_neurons)
     net.add(all_synapses)

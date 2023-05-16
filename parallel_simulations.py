@@ -1,5 +1,3 @@
-
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -27,7 +25,10 @@ from joblib import Parallel, delayed
 import multiprocessing
 import os
 
-from model_files.FEF_and_LIP_single_simulation import *
+try:
+    from FEF_and_LIP_single_simulation import *
+except:
+    from model_files.FEF_and_LIP_single_simulation import *
 
 os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['OMP_NUM_THREADS'] = '1'
@@ -44,7 +45,7 @@ path=""
 if os.name == 'nt':
     path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
 else :
-    path="/results_"+str(datetime.datetime.now())
+    path="results_"+str(datetime.datetime.now())
 
 os.mkdir(path)
 

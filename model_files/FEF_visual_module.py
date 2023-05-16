@@ -10,10 +10,16 @@ Created on Wed Apr 29 08:58:41 2020
 from brian2 import *
 
 from scipy import signal
-from cells.RS_FEF import *
-from cells.FS_FEF import *
-from cells.SI_FEF import *
-from cells.VIP_FEF_vis import *
+try:
+    from cells.RS_FEF import *
+    from cells.FS_FEF import *
+    from cells.SI_FEF import *
+    from cells.VIP_FEF_vis import *
+except:
+    from model_files.cells.RS_FEF import *
+    from model_files.cells.FS_FEF import *
+    from model_files.cells.SI_FEF import *
+    from model_files.cells.VIP_FEF_vis import *
 
 def save_raster(name,raster_i,raster_t,path):
     raster_file=open(path+'/raster_'+name+'_i.txt','w')
@@ -146,9 +152,10 @@ def generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS,N_RS,runtime,target_on,ta
     S_in_target_VIP.connect(j='i')
     S_in_target_SI=Synapses(Poisson_target,SI,on_pre='Vinp2=Vhigh')
     S_in_target_SI.connect(j='i')
-    SI.ginp_SI2=2.5* msiemens * cm **-2
-    RS.ginp_RS2=2.5* msiemens * cm **-2
-    VIP.ginp_VIP2=3* msiemens * cm **-2
+    V4_multiplier = 1
+    SI.ginp_SI2=V4_multiplier*2.5* msiemens * cm **-2
+    RS.ginp_RS2=V4_multiplier*2.5* msiemens * cm **-2
+    VIP.ginp_VIP2=V4_multiplier*3* msiemens * cm **-2
 
     
     #Define monitors and run network :

@@ -10,10 +10,16 @@ Created on Mon Dec  2 14:28:44 2019
 from brian2 import *
 
 from scipy import signal
-from cells.RS_FEF_VM import *
-from cells.FS_FEF import *
-from cells.SI_FEF_more_h import *
-from cells.VIP_FEF import *
+try:
+    from cells.RS_FEF_VM import *
+    from cells.FS_FEF import *
+    from cells.SI_FEF_more_h import *
+    from cells.VIP_FEF import *
+except:
+    from model_files.cells.RS_FEF_VM import *
+    from model_files.cells.FS_FEF import *
+    from model_files.cells.SI_FEF_more_h import *
+    from model_files.cells.VIP_FEF import *
 
 def save_raster(name,raster_i,raster_t,path):
     raster_file=open(path+'/raster_'+name+'_i.txt','w')
@@ -238,6 +244,7 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     noise_level=-30* uA * cmeter ** -2
     # noise_level=0* uA * cmeter ** -2
     theta_frequency=4*Hz
+    noise_array = ones((200000,20))*noise_good
     if theta_phase=='mixed':
         t0,t1=0.5/theta_frequency,1/theta_frequency
         i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1
@@ -342,7 +349,8 @@ if __name__=='__main__':
     Vlow=-80*mV
     ginp=0* msiemens * cm **-2
     
-    N_RS,N_SOM=20,20
+    N_RS_gran,N_SOM=20,20
+    t_SI, t_FS = 20*ms,5*ms
     all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS_gran,N_SOM,runtime)    
     
     net=Network()

@@ -245,6 +245,7 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     # noise_level=0* uA * cmeter ** -2
     theta_frequency=4*Hz
     noise_array = ones((200000,20))*noise_good
+    noise=TimedArray(noise_array,dt=defaultclock.dt)
     if theta_phase=='mixed':
         t0,t1=0.5/theta_frequency,1/theta_frequency
         i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1

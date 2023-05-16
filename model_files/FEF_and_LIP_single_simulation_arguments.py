@@ -19,8 +19,9 @@ except:
     from model_files.FEF_full import *
 
 from itertools import *
-from joblib import Parallel, delayed
-import multiprocessing
+#from joblib import Parallel, delayed
+#import multiprocessing
+import sys
 
 
 def save_raster(name,raster_i,raster_t,path):
@@ -335,7 +336,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         # plot(inp_mon_FEF.t,inp_mon_FEF.Iinp2[0],'r.',label='RS cells')
         
         figure()
-        plot(inp_mon_FEF.t,inp_mon_FEF.Isyn[0])
+        plot(inp_mon_FEF.t,inp_mon_FEF.ginp_RS2[0])
         
 #        show()
     
@@ -347,7 +348,7 @@ if __name__=='__main__':
     if os.name == 'nt':
         path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
     else :
-        path="./results_"+str(datetime.datetime.now())
+        path="./results_"+sys.argv[1]#datetime.datetime.now())
     
     os.mkdir(path)
     
@@ -358,7 +359,9 @@ if __name__=='__main__':
     target_on=[True]
     runtime=2*second
     
-    target_time=850*msecond#[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
+    target_time = int(sys.argv[1])*msecond
+    
+    #target_time=850*msecond#[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
  
     simu = [target_time, t_SI, t_FS, theta_phase, g_LIP_FEF_v, target_on, runtime]
     

@@ -152,7 +152,7 @@ def generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS,N_RS,runtime,target_on,ta
     S_in_target_VIP.connect(j='i')
     S_in_target_SI=Synapses(Poisson_target,SI,on_pre='Vinp2=Vhigh')
     S_in_target_SI.connect(j='i')
-    V4_multiplier = 1.5
+    V4_multiplier = 1
     SI.ginp_SI2=V4_multiplier*2.5* msiemens * cm **-2
     RS.ginp_RS2=V4_multiplier*2.5* msiemens * cm **-2
     VIP.ginp_VIP2=V4_multiplier*3* msiemens * cm **-2

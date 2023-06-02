@@ -41,9 +41,10 @@ Iran=sig_ranRS_LIP*randn()+s_ran*g_ranRS_LIP*(V-0*mV) : amp * meter ** -2 (const
 Iinp1=sinp*ginp_RS*(V-Vrev_inp) : amp * meter ** -2
     dsinp/dt=-sinp/taudinp + (1-sinp)/taurinp*0.5*(1+tanh(Vinp/10/mV)) : 1
     dVinp/dt=1/tauinp*(Vlow-Vinp) : volt
-    ginp_RS = ginp_RS_good* int(sin(2*pi*t*8*Hz)>=0) + ginp_RS_bad* int(sin(2*pi*t*8*Hz)<0) : siemens * meter **-2  
+    ginp_RS = ginp_RS_good* int(sin(2*pi*t*2*theta_freq)>=0) + ginp_RS_bad* int(sin(2*pi*t*2*theta_freq)<0) : siemens * meter **-2  
     ginp_RS_good : siemens * meter **-2
-    ginp_RS_bad : siemens * meter **-2    
+    ginp_RS_bad : siemens * meter **-2 
+    theta_freq : Hz
 Iinp2: amp * meter ** -2
 Iinp3: amp * meter ** -2
 '''
@@ -77,6 +78,7 @@ if __name__=='__main__' :
     Vhigh=0*mV
     Vlow=-80*mV
     ginp=0* msiemens * cm **-2
+    theta_freq=4*Hz
         
     RS=NeuronGroup(1,eq_RS_LIP,threshold='V>-20*mvolt',refractory=3*ms,method='rk4')
 #    RS.V = '-70*mvolt+10*rand()*mvolt'

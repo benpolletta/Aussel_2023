@@ -35,9 +35,10 @@ Iran=sig_ranFS*randn(): amp * meter ** -2 (constant over dt)
 Iapp=sinp*ginp_FS*(V-Vrev_inp) : amp * meter ** -2
     dsinp/dt=-sinp/taudinp + (1-sinp)/taurinp*0.5*(1+tanh(Vinp/10/mV)) : 1
     dVinp/dt=1/tauinp*(Vlow-Vinp) : volt
-    ginp_FS = ginp_FS_good* int(sin(2*pi*t*8*Hz)>=0) + ginp_FS_bad* int(sin(2*pi*t*8*Hz)<0) : siemens * meter **-2 
+    ginp_FS = ginp_FS_good* int(sin(2*pi*t*theta_freq)>=0) + ginp_FS_bad* int(sin(2*pi*t*theta_freq)<0) : siemens * meter **-2 
     ginp_FS_good : siemens * meter **-2
     ginp_FS_bad : siemens * meter **-2  
+    theta_freq : Hz
 '''
 
 

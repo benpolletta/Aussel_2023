@@ -64,10 +64,10 @@ def generate_spike_timing(N,f,start_time,end_time=runtime):
 
 
 
-def create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,target_on,runtime,target_time):
+def create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,theta_freq,target_on,runtime,target_time):
     
     #create each functional group of neurons individually
-    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS_vm,N_SI_vm,runtime)
+    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS_vm,N_SI_vm,runtime)
     RS_vm=all_neurons_vm[0]
     
     all_neurons_v,all_synapses_v,all_monitors_v=generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS_vis,N_RS_vis,runtime,target_on,target_time)
@@ -152,6 +152,7 @@ if __name__=='__main__':
     
     theta_phase='mixed'
 #    theta_phase='good'
+    theta_freq=4*Hz
     target_on=True
     runtime=1*second
     target_time=650*msecond
@@ -160,7 +161,7 @@ if __name__=='__main__':
     net=Network()
     
 #    net,all_monitors=create_network(N_RS_vis,N_FS_vis,N_RS_mot,N_SI_mot,N_dSI_vm,N_RS_vm,N_gSI_vm,theta_phase,target_on,runtime)
-    all_neurons,all_synapses,all_monitors=create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,target_on,runtime,target_time)
+    all_neurons,all_synapses,all_monitors=create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,theta_freq,target_on,runtime,target_time)
     
     net.add(all_neurons)
     net.add(all_synapses)
@@ -309,5 +310,8 @@ if __name__=='__main__':
 #    plot(mon_RS.t,mon_RS.Isyn[0])
 #    plot(mon_RS.t,mon_RS.Isyn[10])
     
+    figure()
+    plot(inp_mon.t,inp_mon.ginp_RS2[0])
+
     clear_cache('cython')
     

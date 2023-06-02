@@ -54,7 +54,7 @@ def save_raster(name,raster_i,raster_t,path):
     raster_file.close()
     return
     
-def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):  
+def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,theta_freq):  
     
     NN=1 #multiplicative factor on the number of neurons
     N_RS,N_FS,N_SI,N_IB= NN*80,NN*20,NN*20,NN*20 #Number of neurons of RE, TC, and HTC type
@@ -80,12 +80,14 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
     E_gran.m = '0+0.05*rand()'
     E_gran.mAR = '0.035+0.025*rand()'
     E_gran.J=J_RSg
+    E_gran.theta_freq = theta_freq
     
     FS_gran=NeuronGroup(N_FS,eq_FS_LIP,threshold='V>-20*mvolt',refractory=3*ms,method='rk4')
     FS_gran.V = '-110*mvolt+10*rand()*mvolt'
     FS_gran.h = '0+0.05*rand()'
     FS_gran.m = '0+0.05*rand()'
     FS_gran.J=J_FSg
+    FS_gran.theta_freq = theta_freq
     
     SI_deep=NeuronGroup(N_SI,eq_SI_LIP,threshold='V>-20*mvolt',refractory=3*ms,method='rk4')
     SI_deep.V = '-100*mvolt+10*rand()*mvolt'
@@ -170,7 +172,7 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
             list_time_and_i+=list_time
         return array(list_time_and_i)
     
-    def generate_spike_timing_theta(N,f,start_time,end_time=runtime,f_theta=4*Hz):
+    def generate_spike_timing_theta(N,f,start_time,end_time=runtime,f_theta=theta_freq):
         list_time_and_i=[]
         for i in range(N):
             list_time=[(start_time,i)]
@@ -198,11 +200,12 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
     inputs_mdpul=generate_spike_timing(N_FS,13*Hz,0*ms,end_time=10000*ms)
 
     if theta_phase=='mixed':
+        theta_period=1/theta_freq
         t0=0*ms
-        t1=125*ms
+        t1=theta_period/2
         inputs_mdpul=generate_spike_timing(N_FS,13*Hz,t0,end_time=t1)
-        while t0+250*ms<runtime:
-            t0,t1=t0+250*ms,t1+250*ms
+        while t0+theta_period<runtime:
+            t0,t1=t0+theta_period,t1+theta_period
             inputs_mdpul=vstack((inputs_mdpul,generate_spike_timing(N_SI,13*Hz,t0,end_time=t1)))
                           
         
@@ -240,7 +243,7 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
     R6=SpikeMonitor(FS_gran,record=True)
     R7=SpikeMonitor(SI_deep,record=True)
     
-    V5=StateMonitor(E_gran,'V',record=True)
+    V5=StateMonitor(E_gran,['V','sinp','ginp_RS'],record=True)
     V6=StateMonitor(FS_gran,'V',record=True)
     V7=StateMonitor(SI_deep,'V',record=True)
     
@@ -254,7 +257,7 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
 #    print(simu,len(simu))
     start_scope()
 
-    target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7]
+    target_time,N_simu,t_SI,t_FS,theta_phase,theta_freq,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
 
     if not plot_raster :
         new_path=path+"/results_"+str(N_simu)
@@ -300,7 +303,7 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
     net = Network(collect())
     
     print('Network setup')
-    all_neurons, all_synapses, all_gap_junctions, all_monitors=make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase)
+    all_neurons, all_synapses, all_gap_junctions, all_monitors=make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,theta_freq)
     V1,V2,V3,R1,R2,R3,I1,I2,I3,V4,R4,I4s,I4a,I4ad,I4bd,R5,R6,R7,V5,V6,V7=all_monitors
     
     
@@ -409,13 +412,13 @@ def run_one_simulation(simu,path,index_var):
     NN=1 #multiplicative factor on the number of neurons
     N_RS,N_FS,N_SI,N_IB= NN*80,NN*20,NN*20,NN*20 #Number of neurons of RE, TC, and HTC type
     
-    syn_cond,J,thal,theta_phase,index=simu
+    syn_cond,J,thal,theta_phase,theta_freq,index=simu
     print('Simulation '+str(index))
     
     net = Network(collect())
     
     print('Network setup')
-    all_neurons, all_synapses, all_gap_junctions, all_monitors=make_full_network(syn_cond,J,thal,theta_phase)
+    all_neurons, all_synapses, all_gap_junctions, all_monitors=make_full_network(syn_cond,J,thal,theta_phase,theta_freq)
     V1,V2,V3,R1,R2,R3,I1,I2,I3,V4,R4,I4s,I4a,I4ad,I4bd,R5,R6,R7,V5,V6,V7,inpmon,inpIBmon=all_monitors
     
     
@@ -531,16 +534,17 @@ def run_one_simulation(simu,path,index_var):
 if __name__=='__main__':
         
     runtime=1*second
-    all_theta=['good'] 
+    all_theta_phase=['good'] 
+    all_theta_freq=[4*Hz]
     all_t_SOM=[20*msecond]
     all_t_FS=[5*msecond]
 
-    simu=(target_presentation_time,0,t_SOM,t_FS,theta_phase,g_LIP_FEF_v,target_presence,runtime)
+    #simu=(target_presentation_time,0,t_SOM,t_FS,theta_phase,g_LIP_FEF_v,target_presence,runtime)
     
     path="./results_"+str(datetime.datetime.now())
     os.mkdir(path)
         
-    all_sim=list(product(all_t_SOM,all_t_FS,all_theta))
+    all_sim=list(product(all_t_SOM,all_t_FS,all_theta_phase,all_theta_freq))
 #    index_var=[-1]
     
     all_sim=[[0*second,0]+list(all_sim[i])+[0,False,runtime,i] for i in range(len(all_sim))]

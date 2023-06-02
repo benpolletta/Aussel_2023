@@ -39,7 +39,7 @@ def zeros_ones_monitor(spikemon,record_dt,runtime):
         zeros_ones[int(time/record_dt)]+=1
     return zeros_ones
 
-def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
+def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS,N_SOM,runtime):
     
     LIP_input = 0* msiemens * cm **-2
     
@@ -127,7 +127,7 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
     # fmdPul=30*Hz
     spikes_mdPul=generate_spike_timing(N_RS,fmdPul,0*ms,end_time=3000*ms)
     #Theta=4Hz
-    theta_frequency=4*Hz
+    theta_frequency=theta_freq
     if theta_phase=='mixed':
         t0=0*ms
         # t1=125*ms
@@ -180,7 +180,7 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
     R5=SpikeMonitor(RS,record=True)
     R6=SpikeMonitor(SOM,record=True)
     
-    inpmon=StateMonitor(RS,'ginp_RS2',record=True)
+    inpmon=StateMonitor(RS,['sinp2','ginp_RS2'],record=True)
     # inpmon=StateMonitor(RS,'Isyn',record=True)
     
     V_RS=StateMonitor(RS,'V',record=True)
@@ -195,7 +195,7 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
 def sim_FEF_vm_alone(simu,path,plot_raster=False):
     start_scope()   
     
-    target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7]
+    target_time,N_simu,t_SI,t_FS,theta_phase,theta_freq,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
     prefs.codegen.target = 'numpy'
     
     defaultclock.dt = 0.01*ms
@@ -243,7 +243,7 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     noise_good=0* uA * cmeter ** -2
     noise_level=-30* uA * cmeter ** -2
     # noise_level=0* uA * cmeter ** -2
-    theta_frequency=4*Hz
+    theta_frequency=theta_freq
     noise_array = ones((200000,20))*noise_good
     noise=TimedArray(noise_array,dt=defaultclock.dt)
     if theta_phase=='mixed':
@@ -352,7 +352,8 @@ if __name__=='__main__':
     
     N_RS_gran,N_SOM=20,20
     t_SI, t_FS = 20*ms,5*ms
-    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS_gran,N_SOM,runtime)    
+    theta_freq = 3*Hz
+    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS_gran,N_SOM,runtime)    
     
     net=Network()
     net.add(all_neurons)

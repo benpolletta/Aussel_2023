@@ -45,9 +45,10 @@ Iinp1=sinp*ginp_RS*(V-Vrev_inp) : amp * meter ** -2
 Iinp2=sinp2*ginp_RS2*(V-Vrev_inp) : amp * meter ** -2
     dsinp2/dt=-sinp2/taudinp3 + (1-sinp2)/taurinp3*0.5*(1+tanh(Vinp2/10/mV)) : 1
     dVinp2/dt=1/tauinp3*(Vlow-Vinp2) : volt
-    ginp_RS2 = ginp_RS2_good* int(sin(2*pi*t*8*Hz)>=0) + ginp_RS2_bad* int(sin(2*pi*t*8*Hz)<0) : siemens * meter **-2 
+    ginp_RS2 = ginp_RS2_good* int(sin(2*pi*t*2*theta_freq)>=0) + ginp_RS2_bad* int(sin(2*pi*t*2*theta_freq)<0) : siemens * meter **-2 
     ginp_RS2_good : siemens * meter **-2
     ginp_RS2_bad : siemens * meter **-2   
+    theta_freq : Hz
     
 Iinp3: amp * meter ** -2
 '''

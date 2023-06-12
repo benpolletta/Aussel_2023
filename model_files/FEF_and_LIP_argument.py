@@ -373,7 +373,7 @@ if __name__=='__main__':
     if os.name == 'nt':
         path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
     else :
-        path=sys.argv[2]+"/results_"+sys.argv[1]#datetime.datetime.now())
+        path=sys.argv[3]+"/theta_"+sys.argv[2]+"Hz/results_"+sys.argv[1]#datetime.datetime.now())
     
     if not os.path.exists(path):
         os.makedirs(path)
@@ -403,7 +403,7 @@ if __name__=='__main__':
     
     #Other parameters (fixed across all simulations):
     theta_phase='mixed' #theta phases to simulate (good, bad or mixed)
-    theta_freq=6*Hz
+    theta_freq=int(sys.argv[2])*Hz
     gLIP_FEFv=0.015*msiemens * cm **-2 #LIP->FEF visual module synapse conductance :
     target_presentation='True' #'True' if target is presented, 'False' otherwise
     runtime=2*second #simulation duration

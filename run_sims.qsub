@@ -1,0 +1,26 @@
+#!/bin/bash -l
+
+#$ -N run_FEF_LIP
+
+# Run each simulation as a separate job
+#$ -t 1-2900
+
+# Wait for the Cython-generating job to finish
+#$ -hold_jid FEF_LIP_cython
+
+# Email me when done
+#$ -m ea
+
+# Loading modules
+module load miniconda
+conda activate brienv
+cd /projectnb/crc-nak/brpp/Aussel_2023/model_files
+
+
+# Get the simulation index from the SGE_TASK_ID
+# Remember that SGE_TASK_ID starts from 1, but
+# Python indexes from 0.
+
+SIM_INDEX=$(( $SGE_TASK_ID - 1 ))
+
+python FEF_and_LIP_single_cache.py $SIM_INDEX $1 /projectnb/crc-nak/brpp/Aussel_2023/simulation_results

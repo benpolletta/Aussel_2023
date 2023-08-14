@@ -1,0 +1,29 @@
+#!/bin/bash -l
+
+# Run FEF_and_LIP_short.py on the lowest common denominator
+# CPU. Cache the Cython output in /projectnb.
+# Then the real simulations will launch and skip the
+# Cython generation phase as they can re-use the 
+# 
+
+#$ -N FEF_LIP_cython
+
+# This is the oldest generation CPU on the SCC
+#$ -l cpu_arch=sandybridge
+
+# -m ea
+
+# Loading modules
+module load miniconda
+conda activate brienv
+cd /projectnb/crc-nak/brpp/Aussel_2023/model_files
+
+# Currently we have:
+#    FEF_and_LIP_short.py sim_num arg2 arg3 
+# Let's use sim_num in FEF_and_LIP_short.py to
+# trigger a very short simulation time that runs the
+# Cython generation.
+
+python FEF_and_LIP_single_cache.py -1 $1 /projectnb/crc-nak/brpp/Aussel_2023/simulation_results 
+
+qsub ../run_sims.qsub $1

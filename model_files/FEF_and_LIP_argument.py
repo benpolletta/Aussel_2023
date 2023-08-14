@@ -90,8 +90,8 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     taudinp2=10*ms
     tauinp2=taudinp2
     
-    taurinp3=2*ms
-    taudinp3=40*ms
+    taurinp3=0.1*ms
+    taudinp3=0.5*ms #40*ms
     tauinp3=taudinp3
 
     
@@ -196,19 +196,19 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     
     prefs.codegen.target = 'cython' #cython=faster, numpy = default python
     
-    taurinp=0.1*ms
-    taudinp=0.5*ms
-    tauinp=taudinp
-    Vhigh=0*mV
-    Vlow=-80*mV
+    # taurinp=0.1*ms
+    # taudinp=0.5*ms
+    # tauinp=taudinp
+    # Vhigh=0*mV
+    # Vlow=-80*mV
     
-    taurinp2=2*ms
-    taudinp2=10*ms
-    tauinp2=taudinp2
+    # taurinp2=2*ms
+    # taudinp2=10*ms
+    # tauinp2=taudinp2
     
-    taurinp3=2*ms
-    taudinp3=40*ms
-    tauinp3=taudinp3
+    # taurinp3=2*ms #2*ms
+    # taudinp3=10*ms #40*ms
+    # tauinp3=taudinp3
     
     noise_good=0* uA * cmeter ** -2
     noise_level=-30* uA * cmeter ** -2
@@ -414,6 +414,6 @@ if __name__=='__main__':
         
     simu = liste_simus[int(sys.argv[1])]
     
-    FEF_and_LIP(simu,path,plot_raster=True)
+    FEF_and_LIP(simu,path,plot_raster=False)
 
-    clear_cache('cython')
+    #clear_cache('cython')

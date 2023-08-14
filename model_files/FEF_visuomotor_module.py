@@ -164,7 +164,7 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS,N_SOM,
         # fLIP=150*Hz
         LIPspikes=generate_spike_timing(N_SOM,fLIP,t0,end_time=t1)
         while t0+1/theta_frequency<runtime:
-            t0,t1=t0+0.5/theta_frequency,t1+0.5/theta_frequency
+            t0,t1=t0+1/theta_frequency,t1+1/theta_frequency
             fLIP=50*Hz*int(fLIP==13*Hz)+13*Hz*int(fLIP==50*Hz)
             # fLIP=150*Hz*int(fLIP==13*Hz)+13*Hz*int(fLIP==150*Hz)
             LIPspikes=vstack((LIPspikes,generate_spike_timing(N_SOM,fLIP,t0,end_time=t1)))

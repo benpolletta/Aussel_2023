@@ -139,8 +139,8 @@ if __name__=='__main__':
     taurinp2=2*ms
     taudinp2=10*ms
     tauinp2=taudinp2  
-    taurinp3=2*ms
-    taudinp3=40*ms
+    taurinp3=0.1*ms #2*ms
+    taudinp3=0.5*ms #10*ms #40*ms
     tauinp3=taudinp3  
 #    ginp_SI=0* msiemens * cm **-2
     
@@ -167,15 +167,15 @@ if __name__=='__main__':
     net.add(all_synapses)
     net.add(all_monitors)
     
-    taurinp=0.1*ms
-    taudinp=0.5*ms
-    tauinp=taudinp       
-    taurinp2=2*ms
-    taudinp2=10*ms
-    tauinp2=taudinp2
-    taurinp3=2*ms
-    taudinp3=40*ms
-    tauinp3=taudinp3 
+    # taurinp=0.1*ms
+    # taudinp=0.5*ms
+    # tauinp=taudinp       
+    # taurinp2=2*ms
+    # taudinp2=10*ms
+    # tauinp2=taudinp2
+    # taurinp3=0.1*ms #2*ms
+    # taudinp3=0.5*ms #40*ms
+    # tauinp3=taudinp3 
     
     print('Compiling with cython')
     prefs.codegen.target = 'cython'

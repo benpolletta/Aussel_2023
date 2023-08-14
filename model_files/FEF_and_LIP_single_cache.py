@@ -420,7 +420,7 @@ if __name__=='__main__':
     theta_freq=int(sys.argv[2])*Hz
     gLIP_FEFv=0.015*msiemens * cm **-2 #LIP->FEF visual module synapse conductance :
     target_presentation='True' #'True' if target is presented, 'False' otherwise
-    runtime=.25*second #simulation duration
+    runtime=2*second #simulation duration
  
     if idx < 0:
         # This is just to trigger Cython, short runtime.

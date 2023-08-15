@@ -64,10 +64,17 @@ def generate_spike_timing(N,f,start_time,end_time=runtime):
 
 
 
-def create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,theta_freq,target_on,runtime,target_time):
+def create_FEF_full2(theta_phase,j_rsfefvm,target_on,runtime,target_time):
+    
+    N_RS_vis,N_FS_vis,N_RS_mot=[20]*3
+    
+    t_SI=[20*ms]
+    t_FS=[5*ms]
+    
+    theta_freq=4*Hz
     
     #create each functional group of neurons individually
-    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS_vm,N_SI_vm,runtime)
+    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime)
     RS_vm=all_neurons_vm[0]
     
     all_neurons_v,all_synapses_v,all_monitors_v=generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS_vis,N_RS_vis,runtime,target_on,target_time)
@@ -145,14 +152,10 @@ if __name__=='__main__':
 #    ginp_SI=0* msiemens * cm **-2
     
     print('Creating the network')
-    N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm=[20]*5
-    
-    t_SI=[20*ms]
-    t_FS=[5*ms]
     
     theta_phase='mixed'
 #    theta_phase='good'
-    theta_freq=4*Hz
+    j_rsfefvm='45 * uA * cmeter ** -2'
     target_on=True
     runtime=1*second
     target_time=650*msecond
@@ -161,7 +164,7 @@ if __name__=='__main__':
     net=Network()
     
 #    net,all_monitors=create_network(N_RS_vis,N_FS_vis,N_RS_mot,N_SI_mot,N_dSI_vm,N_RS_vm,N_gSI_vm,theta_phase,target_on,runtime)
-    all_neurons,all_synapses,all_monitors=create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,theta_freq,target_on,runtime,target_time)
+    all_neurons,all_synapses,all_monitors=create_FEF_full2(theta_phase,j_rsfefvm,target_on,runtime,target_time)
     
     net.add(all_neurons)
     net.add(all_synapses)

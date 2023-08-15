@@ -11,6 +11,9 @@
 # Email me when done
 #$ -m ea
 
+# Join jobs
+#$ -j y
+
 # Loading modules
 module load miniconda
 conda activate brienv

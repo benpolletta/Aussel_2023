@@ -39,7 +39,14 @@ def zeros_ones_monitor(spikemon,record_dt,runtime):
         zeros_ones[int(time/record_dt)]+=1
     return zeros_ones
 
-def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS,N_SOM,runtime):
+def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
+    
+    N_RS,N_SOM=[20]*2
+    
+    t_SI=[20*ms]
+    t_FS=[5*ms]
+    
+    theta_freq=4*Hz
     
     LIP_input = 0* msiemens * cm **-2
     
@@ -49,8 +56,6 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS,N_SOM,
     if theta_phase=='good' or theta_phase=='mixed':
         LIP_input=5* msiemens * cm **-2
         # LIP_input=6* msiemens * cm **-2
-        
-
     
     prefs.codegen.target = 'numpy'
     
@@ -64,7 +69,7 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS,N_SOM,
     RS.h = '0+0.05*rand()'
     RS.m = '0+0.05*rand()'
     RS.mAR = '0.035+0.025*rand()'
-    RS.J_fixed='45 * uA * cmeter ** -2'
+    RS.J_fixed=j_rsfefvm #'45 * uA * cmeter ** -2'
     # RS.J_fixed='80 * uA * cmeter ** -2'
     # RS.J_fixed='75 * uA * cmeter ** -2'
     
@@ -195,7 +200,7 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS,N_SOM,
 def sim_FEF_vm_alone(simu,path,plot_raster=False):
     start_scope()   
     
-    target_time,N_simu,t_SI,t_FS,theta_phase,theta_freq,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
+    target_time,N_simu,t_SI,t_FS,theta_phase,j_rsfefvm,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
     prefs.codegen.target = 'numpy'
     
     defaultclock.dt = 0.01*ms
@@ -219,7 +224,7 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     ginp=0* msiemens * cm **-2
     
     N_RS,N_SOM=20,20
-    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime)    
+    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime)    
     
     net=Network()
     net.add(all_neurons)
@@ -236,8 +241,8 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     taudinp2=10*ms
     tauinp2=taudinp2   
     
-    taurinp3=2*ms
-    taudinp3=40*ms
+    taurinp3=0.1*ms #2*ms
+    taudinp3=0.5*ms #40*ms
     tauinp3=taudinp3   
     
     noise_good=0* uA * cmeter ** -2
@@ -275,8 +280,8 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     taudinp2=10*ms
     tauinp2=taudinp2
     
-    taurinp3=2*ms
-    taudinp3=40*ms
+    taurinp3=0.1*ms #2*ms
+    taudinp3=0.5*ms #40*ms
     tauinp3=taudinp3
 
     # taurinp3=2.5*ms
@@ -350,10 +355,9 @@ if __name__=='__main__':
     Vlow=-80*mV
     ginp=0* msiemens * cm **-2
     
-    N_RS_gran,N_SOM=20,20
-    t_SI, t_FS = 20*ms,5*ms
-    theta_freq = 3*Hz
-    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,theta_freq,N_RS_gran,N_SOM,runtime)    
+    j_rsfefvm='45*uA*cmeter**-2'
+    
+    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime)    
     
     net=Network()
     net.add(all_neurons)

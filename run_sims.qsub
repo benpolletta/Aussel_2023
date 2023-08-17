@@ -13,12 +13,12 @@
 
 # Join jobs
 #$ -j y
+#$ -o /projectnb/crc-nak/brpp/Aussel_2023/simulation_results/log_files/
 
 # Loading modules
 module load miniconda
-conda activate brienv
+conda activate brienv2
 cd /projectnb/crc-nak/brpp/Aussel_2023/model_files
-
 
 # Get the simulation index from the SGE_TASK_ID
 # Remember that SGE_TASK_ID starts from 1, but

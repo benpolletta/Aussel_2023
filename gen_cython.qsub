@@ -15,7 +15,7 @@
 
 # Loading modules
 module load miniconda
-conda activate brienv
+conda activate brienv2
 cd /projectnb/crc-nak/brpp/Aussel_2023/model_files
 
 # Currently we have:
@@ -26,4 +26,4 @@ cd /projectnb/crc-nak/brpp/Aussel_2023/model_files
 
 python FEF_and_LIP_single_cache.py -1 $1 /projectnb/crc-nak/brpp/Aussel_2023/simulation_results 
 
-qsub ../run_sims.qsub $1
+# qsub ../run_sims.qsub $1

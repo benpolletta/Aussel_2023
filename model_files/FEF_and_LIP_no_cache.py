@@ -141,7 +141,9 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     RS_sup_LIP,IB_LIP,SI_deep_LIP=all_neurons_LIP[0],all_neurons_LIP[5],all_neurons_LIP[9]
     RS_gran_LIP,FS_gran_LIP=all_neurons_LIP[7],all_neurons_LIP[8]
     
-    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(theta_phase,j_rsfefvm,target_on,runtime,target_time)
+    FEFvm_input_path = 'simulation_results/jRSFEFvm_40uAcm-2/results_'+str(simu_number)+'/'
+    
+    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(FEFvm_input_path,theta_phase,j_rsfefvm,target_on,runtime,target_time)
     R8,R9,V_RS,V_SOM,inp_mon_FEF,R11,R12,R13,R14,mon_RS=all_monitors_FEF
     RSvm_FEF,SIvm_FEF,RSv_FEF,SIv_FEF,VIPv_FEF=all_neurons_FEF[0],all_neurons_FEF[1],all_neurons_FEF[4],all_neurons_FEF[7],all_neurons_FEF[6]
     
@@ -387,7 +389,7 @@ if __name__=='__main__':
     if os.name == 'nt':
         path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
     else :
-        path=path+"/jRSFEFvm_"+sys.argv[2]+"uAcm-2/results_"+sys.argv[1]#datetime.datetime.now())
+        path=path+"/same-object_jRSFEFvm_"+sys.argv[2]+"uAcm-2/results_"+sys.argv[1]#datetime.datetime.now())
     
     if not os.path.exists(path):
         os.makedirs(path)

@@ -39,7 +39,17 @@ def zeros_ones_monitor(spikemon,record_dt,runtime):
         zeros_ones[int(time/record_dt)]+=1
     return zeros_ones
 
-def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
+def generate_FEFvm_cued_from_raster(file_t,file_i):
+    all_times,all_i=read_raster_times_and_indexes(file_t,file_i)
+    FEFvm_cued_spikes = SpikeGeneratorGroup(20, all_i, all_times*second)
+    FEFvm_cued_eqs='''dV/dt=1/(1*ms)*(-70*mvolt-V) : volt'''
+    FEFvm_cued=NeuronGroup(20,FEFvm_cued_eqs,method='exact',threshold='V>-20*mvolt',refractory=3*ms)
+    FEFvm_cued.V=-70*mvolt
+    FEFvm_cued_syn=Synapses(FEFvm_cued_spikes,FEFvm_cued,on_pre='V=10*mvolt')
+    FEFvm_cued_syn.connect(j='i')
+    return FEFvm_cued_spikes,FEFvm_cued,FEFvm_cued_syn
+
+def generate_deepSI_and_gran_layers(FEFvm_input_path,theta_phase,j_rsfefvm,runtime):
     
     N_RS,N_SOM=[20]*2
     
@@ -178,6 +188,10 @@ def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
     S_LIP_in=Synapses(G_in_LIP,SOM,on_pre='Vinp=Vhigh')
     S_LIP_in.connect(j='i')
     
+    spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster(FEFvm_input_path+"raster_FEF SI2 vm_t.txt", "fefvm/raster_FEF SI2 vm_i.txt")
+    
+    S_in_FEFvm_RS=generate_syn(G_in_FEFvm,RS,'Isyn_FEF_VM_cued','',0.2*msiemens * cm **-2,0.25*ms,t_SI,-80*mV)
+    
     S_LIP_in2=Synapses(G_in_LIP,RS,on_pre='Vinp=Vhigh')
     S_LIP_in2.connect(j='i')
     
@@ -192,7 +206,7 @@ def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
     V_SOM=StateMonitor(SOM,'V',record=True)
     
     all_neurons=RS,SOM,G_in_mdPul,G_in_LIP
-    all_synapses=S_RSRS,S_RSSOM,S_SOMRS,S_in_mdPul,S_LIP_in,S_LIP_in2
+    all_synapses=S_RSRS,S_RSSOM,S_SOMRS,S_in_mdPul,S_in_FEFvm_RS,S_LIP_in,S_LIP_in2
     all_monitors=R5,R6,V_RS,V_SOM,inpmon
     
     return all_neurons,all_synapses,all_monitors

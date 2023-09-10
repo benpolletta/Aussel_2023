@@ -64,7 +64,7 @@ def generate_spike_timing(N,f,start_time,end_time=runtime):
 
 
 
-def create_FEF_full2(theta_phase,j_rsfefvm,target_on,runtime,target_time):
+def create_FEF_full2(FEFvm_input_path,theta_phase,j_rsfefvm,target_on,runtime,target_time):
     
     N_RS_vis,N_FS_vis,N_RS_mot=[20]*3
     
@@ -74,7 +74,7 @@ def create_FEF_full2(theta_phase,j_rsfefvm,target_on,runtime,target_time):
     theta_freq=4*Hz
     
     #create each functional group of neurons individually
-    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime)
+    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(FEFvm_input_path,theta_phase,j_rsfefvm,runtime)
     RS_vm=all_neurons_vm[0]
     
     all_neurons_v,all_synapses_v,all_monitors_v=generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS_vis,N_RS_vis,runtime,target_on,target_time)

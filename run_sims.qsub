@@ -26,4 +26,4 @@ cd /projectnb/crc-nak/brpp/Aussel_2023/model_files
 
 SIM_INDEX=$(( $SGE_TASK_ID - 1 ))
 
-python FEF_and_LIP_single_cache.py $SIM_INDEX $1 /projectnb/crc-nak/brpp/Aussel_2023/simulation_results
+python FEF_and_LIP_no_cache.py $SIM_INDEX $1 /projectnb/crc-nak/brpp/Aussel_2023/simulation_results

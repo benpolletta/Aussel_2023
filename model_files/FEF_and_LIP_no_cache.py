@@ -11,23 +11,24 @@ from brian2 import *
 
 
 import os
-tmpdir = os.environ["TMPDIR"]
-user = os.environ["USER"]
-pid = os.getpid()
-cache_dir = '/projectnb/crc-nak/brpp/cython_cache' #os.path.join(tmpdir, user, str(pid))
-#if not os.path.exists(cache_dir):
-#    os.makedirs(cache_dir)
-prefs.codegen.runtime.cython.cache_dir = cache_dir
-prefs.codegen.runtime.cython.multiprocess_safe = False
-# Enable OpenMP multithreading in compiled code
-# prefs.devices.cpp_standalone.openmp_threads = int(os.environ['NSLOTS'])
-# Set the compiled code to target Sandybridge, the lowest common denominator
-# CPU on the SCC. With the cache directory setting this *should* result
-# in compilation happening once, then getting re-used for each simulation.
-prefs.codegen.cpp.extra_compile_args_gcc = ['-w','-O3', '-ffast-math', '-fno-finite-math-only', '-march=sandybridge', '-mtune=intel','-std=c++11']
-# the compiler does this anyway, it should speed up the compilation time
-prefs.codegen.loop_invariant_optimisations = False
-prefs.codegen.max_cache_dir_size = 0
+prefs.codegen.target = 'numpy'
+# tmpdir = os.environ["TMPDIR"]
+# user = os.environ["USER"]
+# pid = os.getpid()
+# cache_dir = '/projectnb/crc-nak/brpp/cython_cache' #os.path.join(tmpdir, user, str(pid))
+# #if not os.path.exists(cache_dir):
+# #    os.makedirs(cache_dir)
+# prefs.codegen.runtime.cython.cache_dir = cache_dir
+# prefs.codegen.runtime.cython.multiprocess_safe = False
+# # Enable OpenMP multithreading in compiled code
+# # prefs.devices.cpp_standalone.openmp_threads = int(os.environ['NSLOTS'])
+# # Set the compiled code to target Sandybridge, the lowest common denominator
+# # CPU on the SCC. With the cache directory setting this *should* result
+# # in compilation happening once, then getting re-used for each simulation.
+# prefs.codegen.cpp.extra_compile_args_gcc = ['-w','-O3', '-ffast-math', '-fno-finite-math-only', '-march=sandybridge', '-mtune=intel','-std=c++11']
+# # the compiler does this anyway, it should speed up the compilation time
+# prefs.codegen.loop_invariant_optimisations = False
+# prefs.codegen.max_cache_dir_size = 0
 
 from scipy import signal
 
@@ -204,9 +205,9 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     net.add(S_LIP_SIv_FEF)
     net.add(S_LIP_VIPv_FEF)
     
-    print('Compiling with cython')
+    # print('Compiling with cython')
     
-    prefs.codegen.target = 'auto' #cython=faster, numpy = default python
+    # prefs.codegen.target = 'auto' #cython=faster, numpy = default python
     
     # taurinp=0.1*ms
     # taudinp=0.5*ms
@@ -270,6 +271,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     save_raster('FEF VIP v',R13.i,R13.t,path)
     save_raster('FEF SI v',R14.i,R14.t,path)
     save_raster('FEF RS m',mon_RS.i,mon_RS.t,path)
+    save_voltage('FEF_RS_vm',V_RS.t,V_RS.V,path)
 
     if plot_raster:
         #LIP Plot
@@ -385,10 +387,16 @@ if __name__=='__main__':
     if os.name == 'nt':
         path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
     else :
-        path=sys.argv[3]+"/jRSFEFvm_"+sys.argv[2]+"uAcm-2/results_"+sys.argv[1]#datetime.datetime.now())
+        path=path+"/jRSFEFvm_"+sys.argv[2]+"uAcm-2/results_"+sys.argv[1]#datetime.datetime.now())
     
     if not os.path.exists(path):
         os.makedirs(path)
+        
+    test_raster_filename = path+'/raster_FEF RS m_t.txt'
+    
+    if os.path.isfile(test_raster_filename):
+        if os.path.getsize(test_raster_filename) > 0:
+            sys.exit(0)
     
     #list of target presentation times :
     liste_target_time=[300*msecond,400*msecond,500*msecond,600*msecond,700*msecond,800*msecond,900*msecond,1000*msecond,1100*msecond,1200*msecond,1300*msecond,1400*msecond,1500*msecond,1600*msecond,1700*msecond]

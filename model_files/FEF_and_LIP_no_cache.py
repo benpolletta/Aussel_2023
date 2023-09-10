@@ -271,7 +271,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     save_raster('FEF VIP v',R13.i,R13.t,path)
     save_raster('FEF SI v',R14.i,R14.t,path)
     save_raster('FEF RS m',mon_RS.i,mon_RS.t,path)
-    save_voltage('FEF_RS_vm',V_RS.t,V_RS.V,path)
+#    save_raster('FEF_RS_vm',V_RS.t,V_RS.V,path)
 
     if plot_raster:
         #LIP Plot

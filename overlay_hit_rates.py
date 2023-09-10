@@ -46,3 +46,5 @@ for i,j in enumerate(j_list):
 xlabel('target time (s)')
 ylabel('hit rate')
 legend(loc='upper right')
+
+savefig('simulation_results/overlaid_hit_rates.png')

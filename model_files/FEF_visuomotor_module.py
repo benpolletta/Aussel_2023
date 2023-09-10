@@ -69,7 +69,7 @@ def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
     RS.h = '0+0.05*rand()'
     RS.m = '0+0.05*rand()'
     RS.mAR = '0.035+0.025*rand()'
-    RS.J_fixed=j_rsfefvm #'45 * uA * cmeter ** -2'
+    RS.J_fixed=j_rsfefvm + (45 * uA * cmeter ** -2)
     # RS.J_fixed='80 * uA * cmeter ** -2'
     # RS.J_fixed='75 * uA * cmeter ** -2'
     

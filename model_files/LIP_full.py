@@ -61,7 +61,7 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,theta_freq):
     
     gSIdFSg,gFSgRSg,gRSgFSg,gRSgRSg,gFSgFSg,gRSgRSs,gRSgFSs,gFSgRSs=syn_cond
     J_RSg=J + (15 * uA * cmeter ** -2)
-    J_FSg=J + (-5 * uA * cmeter ** -2)
+    J_FSg=J/2 + (-5 * uA * cmeter ** -2)
     
     runtime=3*second
     

@@ -56,7 +56,7 @@ from scipy.stats import spearmanr
 # res_folder='poisson2ms'
 
 theta_freq = 4
-res_folder = "jRSFEFvm_63uAcm-2" #'theta_'+str(theta_freq)+'Hz'
+res_folder = "jRSFEFvm_27uAcm-2" #'theta_'+str(theta_freq)+'Hz'
 theta_period = 1000/theta_freq
 
 num_theta_bins = 10
@@ -128,7 +128,7 @@ def plot_raster(file_t,file_i):
     return     
 
 def plot_sim_number(nsim):
-    base="results_"+res_folder+"/results_"+str(nsim)
+    base=res_folder+"/results_"+str(nsim)
     RSLIP_t_name=base+"/raster_LIP RS_t.txt"
     RSLIP_i_name=base+"/raster_LIP RS_i.txt"
     R1_t,R1_i=read_raster_times_and_indexes(RSLIP_t_name,RSLIP_i_name)
@@ -695,5 +695,11 @@ for i in get_fignums():
     current_fig=figure(i)
     current_fig.savefig(path+titles[i-1]+'.png')
     
+with open(path+'hit_rates.txt', 'w') as file:
+    file.writelines("%f\n" % hr for hr in hit_rates)
+    
+    
+# with open(path+'hit_rates.txt', 'r') as file:
+#     other_hit_rates = file.readlines()
 
     

@@ -9,6 +9,7 @@ from brian2 import *
 
 import os
 
+from scipy import signal
 from scipy.stats import norm
 import math
 Z = norm.ppf
@@ -29,20 +30,41 @@ order+=[14,43]
 
 liste_target_time=[liste_target_time[i] for i in order]
 
-colors = [(0, 1, 1), (.25, .75, 1), (.5, .5, 1), (.75, .25, 1), (1, 0, 1)]#['tab:purple','blue','tab:green','yellow','tab:orange','red', 'k']
-j_list = [45, 40, 36, 31, 27]
+# colors = [(0, 1, 1), (.166, ., 1), (.4, .6, 1), (.6, .4, 1), (), (1, 0, 1)]#['tab:purple','blue','tab:green','yellow','tab:orange','red', 'k']
+j_list = [0, -5, -10, -15] #[54, 50, 45, 40, 36, 31, 27]
+r = linspace(0, 1, len(j_list)).tolist()
+g = linspace(1, 0, len(j_list)).tolist()
+b = ones(shape(r)).tolist()
+colors = list(zip(r, g, b))
 
 hit_rates = [[] for j in j_list]
+spectra = [[] for j in j_list]
 
 for i,j in enumerate(j_list):
-    path="simulation_results/jRSFEFvm_"+str(j)+"uAcm-2/figures/"
+    path="simulation_results/j_offset_"+str(j)+"uAcm-2/figures/"
     with open(path+'hit_rates.txt', 'r') as file:
         these_hit_rates = [float(line.strip()) for line in file if line] # file.readlines()
     hit_rates[i] = these_hit_rates
+    f,Spectrum=signal.periodogram(these_hit_rates, 40,'flattop', scaling='spectrum')
+    spectra[i] = Spectrum
+    
+mean_hit_rate = [mean(hr) for hr in hit_rates]
+
+figure()
+plot(j_list, mean_hit_rate,'k')
+xlabel('FEFvm RS tonic input (uA/cm^2)')
+ylabel('mean hit rate')
 
 figure()
 for i,j in enumerate(j_list):
     plot(liste_target_time, hit_rates[i], color=colors[i], label=str(j)+"uAcm-2")
 xlabel('target time (s)')
 ylabel('hit rate')
+legend(loc='upper right')
+
+figure()
+for i,j in enumerate(j_list):
+    plot(f, spectra[i], color=colors[i], label=str(j)+"uAcm-2")
+xlabel('frequency (Hz)')
+ylabel('power')
 legend(loc='upper right')

@@ -60,8 +60,9 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,theta_freq):
     N_RS,N_FS,N_SI,N_IB= NN*80,NN*20,NN*20,NN*20 #Number of neurons of RE, TC, and HTC type
     
     gSIdFSg,gFSgRSg,gRSgFSg,gRSgRSg,gFSgFSg,gRSgRSs,gRSgFSs,gFSgRSs=syn_cond
-    J_RSg=J + (15 * uA * cmeter ** -2)
-    J_FSg=J/2 + (-5 * uA * cmeter ** -2)
+    J_tonic = 0 * uA *cmeter ** -2
+    J_RSg=J_tonic + (15 * uA * cmeter ** -2)
+    J_FSg=J_tonic/2 + (-5 * uA * cmeter ** -2)
     
     runtime=3*second
     

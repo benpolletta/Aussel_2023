@@ -30,8 +30,22 @@ order+=[14,43]
 
 liste_target_time=[liste_target_time[i] for i in order]
 
+# prefix = 'gPul_offset' # 
+# suffix = 'mScm-2' # 
+# j_list = [0, 2.5, 5, 7.5, 10] #
+# description = 'mdPul Input Conductance (Offset from 5/2.5 mScm-2 good/bad)'
+# short_description = 'mdPul Input Offset'
+prefix = 'j_offset'
+suffix = 'uAcm-2'
+j_list = [0, -5, -10, -15]
+description = 'FEF & LIP Tonic Input (Offset, uA/cm^2)' #'mdPul Input Conductance (Offset from 5/2.5 mScm-2 good/bad)'
+short_description = 'FEF & LIP Tonic Offset'
+# prefix = 'jRSFEFvm'
+# suffix = 'uAcm-2'
+# j_list = [54, 50, 45, 40, 36, 31, 27]
+# description = 'FEFvm RS Tonic Input (uA/cm^2)' #'mdPul Input Conductance (Offset from 5/2.5 mScm-2 good/bad)'
+# short_description = 'FEFvm RS Tonic'
 # colors = [(0, 1, 1), (.166, ., 1), (.4, .6, 1), (.6, .4, 1), (), (1, 0, 1)]#['tab:purple','blue','tab:green','yellow','tab:orange','red', 'k']
-j_list = [0, -5, -10, -15] #[54, 50, 45, 40, 36, 31, 27]
 r = linspace(0, 1, len(j_list)).tolist()
 g = linspace(1, 0, len(j_list)).tolist()
 b = ones(shape(r)).tolist()
@@ -41,7 +55,7 @@ hit_rates = [[] for j in j_list]
 spectra = [[] for j in j_list]
 
 for i,j in enumerate(j_list):
-    path="simulation_results/j_offset_"+str(j)+"uAcm-2/figures/"
+    path="simulation_results/"+prefix+"_"+str(j)+suffix+"/figures/" #" gPul_offset_"+str(j)+"mScm-2/figures/"
     with open(path+'hit_rates.txt', 'r') as file:
         these_hit_rates = [float(line.strip()) for line in file if line] # file.readlines()
     hit_rates[i] = these_hit_rates
@@ -51,20 +65,32 @@ for i,j in enumerate(j_list):
 mean_hit_rate = [mean(hr) for hr in hit_rates]
 
 figure()
-plot(j_list, mean_hit_rate,'k')
-xlabel('FEFvm RS tonic input (uA/cm^2)')
+plot(j_list, mean_hit_rate,'ko--', markersize=12)
+xticks(j_list)
+xlabel(description) #)
 ylabel('mean hit rate')
 
 figure()
+# imshow(hit_rates) #liste_target_time, j_list, hit_rates)
 for i,j in enumerate(j_list):
-    plot(liste_target_time, hit_rates[i], color=colors[i], label=str(j)+"uAcm-2")
+    plot(liste_target_time, hit_rates[i], color=colors[i], label=str(j)+suffix, alpha=0.75, linewidth=2)
 xlabel('target time (s)')
 ylabel('hit rate')
-legend(loc='upper right')
+legend(loc='best', frameon=False, title=short_description)
 
 figure()
 for i,j in enumerate(j_list):
-    plot(f, spectra[i], color=colors[i], label=str(j)+"uAcm-2")
+    plot(f, spectra[i], color=colors[i], label=str(j)+suffix, alpha = 0.75, linewidth=2.5)
 xlabel('frequency (Hz)')
 ylabel('power')
-legend(loc='upper right')
+legend(loc='upper right', frameon=False, title=short_description)
+
+t_suffixes = ['mean_hr','hr','hr_spectrum']
+path="simulation_results/"
+t_stem = prefix+'_'+str(min(j_list))+'to'+str(max(j_list))+'_'
+if not os.path.exists(path):
+    os.mkdir(path)
+for i in get_fignums():
+    current_fig=figure(i)
+    current_fig.savefig(path+t_stem+t_suffixes[i-1]+'.png')
+

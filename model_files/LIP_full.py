@@ -54,13 +54,13 @@ def save_raster(name,raster_i,raster_t,path):
     raster_file.close()
     return
     
-def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,theta_freq):  
+def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):  
     
     NN=1 #multiplicative factor on the number of neurons
     N_RS,N_FS,N_SI,N_IB= NN*80,NN*20,NN*20,NN*20 #Number of neurons of RE, TC, and HTC type
     
     gSIdFSg,gFSgRSg,gRSgFSg,gRSgRSg,gFSgFSg,gRSgRSs,gRSgFSs,gFSgRSs=syn_cond
-    J_tonic = 0 * uA *cmeter ** -2
+    # J_tonic = 0 * uA *cmeter ** -2
     J_RSg=J_tonic + (15 * uA * cmeter ** -2)
     J_FSg=J_tonic/2 + (-5 * uA * cmeter ** -2)
     
@@ -98,7 +98,7 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,theta_freq):
     SI_deep.mAR = '0.02+0.04*rand()'
     SI_deep.J='35* uA * cmeter ** -2' #article SI=50, code=35, Mark = 45
  
-    mdpul_input_amplitude = thal
+    mdpul_input_amplitude = thal * mS * cm ** -2
     
     if theta_phase=='bad':
         SI_deep.ginp_SI=0* msiemens * cm **-2 #FEF input to deep SOM cells is zero
@@ -107,14 +107,14 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,theta_freq):
     if theta_phase=='good':
         SI_deep.ginp_SI=5* msiemens * cm **-2 #FEF input to deep SOM cells
         # SI_deep.ginp_SI=0* msiemens * cm **-2 #no FEF input to deep SOM cells
-        mdpul_input_amplitude=thal #mdPul input to granular layer
+        mdpul_input_amplitude=thal * mS * cm ** -2 #mdPul input to granular layer
         # mdpul_input_amplitude=thal*2754.660086037123/12782.0904181147 #long mdPul input to granular layer
         # mdpul_input_amplitude=thal*2754.660086037123/139.46773954954165 #short mdPul input to granular layer
         # mdpul_input_amplitude=0* msiemens * cm **-2 #mdPul input to granular layer
         
     if theta_phase=='mixed':
         SI_deep.ginp_SI=5* msiemens * cm **-2 #FEF input to deep SOM cells
-        mdpul_input_amplitude=thal #mdPul input to granular layer
+        mdpul_input_amplitude=thal * mS * cm ** -2 #mdPul input to granular layer
         
             
     

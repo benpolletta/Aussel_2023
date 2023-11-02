@@ -157,7 +157,7 @@ if __name__=='__main__':
 #    theta_phase='good'
     j_rsfefvm='45 * uA * cmeter ** -2'
     target_on=True
-    runtime=1*second
+    runtime=2*second
     target_time=650*msecond
 #    target_time=1500*msecond
     

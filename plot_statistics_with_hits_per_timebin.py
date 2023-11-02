@@ -56,7 +56,7 @@ from scipy.stats import spearmanr
 # res_folder='poisson2ms'
 
 theta_freq = 4
-res_folder = "gPul_offset_-12.5mScm-2" #
+res_folder = "gPul_2mScm-2" #
 # res_folder = "jRSFEFvm_45uAcm-2" #'theta_'+str(theta_freq)+'Hz'
 theta_period = 1000/theta_freq
 

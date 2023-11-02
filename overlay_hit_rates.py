@@ -30,11 +30,17 @@ order+=[14,43]
 
 liste_target_time=[liste_target_time[i] for i in order]
 
-prefix = 'gPul_offset' # 
+prefix = 'gPul' # 
 suffix = 'mScm-2' # 
-j_list = [0, 2.5, 5, 7.5, 10] #
-description = 'mdPul Input Conductance (Offset from 5/2.5 mScm-2 good/bad)'
+j_list = [2, 3, 4, 5] #
+description = 'mdPul Input Conductance'
 short_description = 'mdPul Input Offset'
+
+# prefix = 'gPul_offset' # 
+# suffix = 'mScm-2' # 
+# j_list = [0, 2.5, 5, 7.5, 10] #
+# description = 'mdPul Input Conductance (Offset from 5/2.5 mScm-2 good/bad)'
+# short_description = 'mdPul Input Offset'
 
 # prefix = 'j_offset'
 # suffix = 'uAcm-2'

@@ -211,7 +211,7 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
         inputs_mdpul=generate_spike_timing(N_FS,13*Hz,t0,end_time=t1)
         while t0+theta_period<runtime:
             t0,t1=t0+theta_period,t1+theta_period
-            inputs_mdpul=vstack((inputs_mdpul,generate_spike_timing(N_SI,13*Hz,t0,end_time=t1)))
+            inputs_mdpul=vstack((inputs_mdpul,generate_spike_timing(N_FS,13*Hz,t0,end_time=t1)))
                           
         
     mdPul_input = SpikeGeneratorGroup(N_FS, inputs_mdpul[:,1], inputs_mdpul[:,0]*second)
@@ -222,12 +222,14 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
     bottomup_in2 = Synapses(mdPul_input2,E_gran, on_pre='Vinp=Vhigh')
     bottomup_in2.connect(j='i')
     
-    Poisson_input = PoissonGroup(10*N_FS, 13/10*Hz)
-    bottomup_in3 = Synapses(Poisson_input,FS_gran, on_pre='Vinp1=Vhigh')
+    inputs_mdpul_tonic=generate_spike_timing(N_FS,13*Hz,0*ms,end_time=10000*ms)
+    
+    mdPul_tonic_input = SpikeGeneratorGroup(N_FS, inputs_mdpul_tonic[:, 1], inputs_mdpul_tonic[:, 0]*second)
+    bottomup_in3 = Synapses(mdPul_tonic_input,FS_gran, on_pre='Vinp1=Vhigh')
     bottomup_in3.connect(j='i%10')
     
-    Poisson_input2 = PoissonGroup(10*N_FS, 13/10*Hz)
-    bottomup_in4 = Synapses(Poisson_input2,E_gran, on_pre='Vinp1=Vhigh')
+    mdPul_tonic_input2 = SpikeGeneratorGroup(N_FS, inputs_mdpul_tonic[:, 1], inputs_mdpul_tonic[:, 0]*second)
+    bottomup_in4 = Synapses(mdPul_tonic_input2,E_gran, on_pre='Vinp1=Vhigh')
     bottomup_in4.connect(j='i%10')
     
     #defining input to the deep layer (from FEFvm)

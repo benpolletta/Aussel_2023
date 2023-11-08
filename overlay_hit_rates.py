@@ -32,9 +32,9 @@ liste_target_time=[liste_target_time[i] for i in order]
 
 prefix = 'gPul' # 
 suffix = 'mScm-2' # 
-j_list = [2, 3, 4, 5] #
+j_list = [1, 2, 3, 4, 5] #
 description = 'mdPul Input Conductance'
-short_description = 'mdPul Input Offset'
+short_description = 'mdPul Input'
 
 # prefix = 'gPul_offset' # 
 # suffix = 'mScm-2' # 

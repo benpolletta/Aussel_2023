@@ -12,6 +12,7 @@ from brian2 import *
 start_scope()
 
 from scipy import signal
+#prefs.codegen.target='numpy'
 
 try:
     from cells.RS_LIP import *
@@ -61,8 +62,8 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
     
     gSIdFSg,gFSgRSg,gRSgFSg,gRSgRSg,gFSgFSg,gRSgRSs,gRSgFSs,gFSgRSs=syn_cond
     # J_tonic = 0 * uA *cmeter ** -2
-    J_RSg=J_tonic + (15 * uA * cmeter ** -2)
-    J_FSg=J_tonic/2 + (-5 * uA * cmeter ** -2)
+    J_RSg=(15 * uA * cmeter ** -2)
+    J_FSg=(-5 * uA * cmeter ** -2)
     
     runtime=3*second
     
@@ -187,7 +188,7 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
             list_time_and_i+=list_time
         return array(list_time_and_i)
     
-    G_topdown,G_topdown2,G_topdown3,G_lateral,G_lateral2,Poisson_input,Poisson_input2=[None]*7
+    G_topdown,G_topdown2,G_topdown3,G_lateral,G_lateral2,mdPul_input,mdPul_input2=[None]*7
     topdown_in,topdown_in2,topdown_in3,lateral_in,lateral_in2,bottomup_in,bottomup_in2=[None]*7
 
 
@@ -198,6 +199,8 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
     FS_gran.ginp_FS_good=mdpul_input_amplitude/2
     E_gran.ginp_RS_bad=mdpul_input_amplitude
     FS_gran.ginp_FS_bad=mdpul_input_amplitude
+    E_gran.ginp_RS1 = 3*(5*mS*cm**-2-mdpul_input_amplitude)/(4*10)
+    FS_gran.ginp_FS1 = 3*(5*mS*cm**-2-mdpul_input_amplitude)/(4*10)
     
     inputs_mdpul=generate_spike_timing(N_FS,13*Hz,0*ms,end_time=10000*ms)
 
@@ -211,13 +214,21 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
             inputs_mdpul=vstack((inputs_mdpul,generate_spike_timing(N_SI,13*Hz,t0,end_time=t1)))
                           
         
-    Poisson_input = SpikeGeneratorGroup(N_FS, inputs_mdpul[:,1], inputs_mdpul[:,0]*second)
-    bottomup_in = Synapses(Poisson_input,FS_gran, on_pre='Vinp=Vhigh')
+    mdPul_input = SpikeGeneratorGroup(N_FS, inputs_mdpul[:,1], inputs_mdpul[:,0]*second)
+    bottomup_in = Synapses(mdPul_input,FS_gran, on_pre='Vinp=Vhigh')
     bottomup_in.connect(j='i')
 
-    Poisson_input2 = SpikeGeneratorGroup(N_FS, inputs_mdpul[:,1], inputs_mdpul[:,0]*second)
-    bottomup_in2 = Synapses(Poisson_input2,E_gran, on_pre='Vinp=Vhigh')
+    mdPul_input2 = SpikeGeneratorGroup(N_FS, inputs_mdpul[:,1], inputs_mdpul[:,0]*second)
+    bottomup_in2 = Synapses(mdPul_input2,E_gran, on_pre='Vinp=Vhigh')
     bottomup_in2.connect(j='i')
+    
+    Poisson_input = PoissonGroup(10*N_FS, 13/10*Hz)
+    bottomup_in3 = Synapses(Poisson_input,FS_gran, on_pre='Vinp1=Vhigh')
+    bottomup_in3.connect(j='i%10')
+    
+    Poisson_input2 = PoissonGroup(10*N_FS, 13/10*Hz)
+    bottomup_in4 = Synapses(Poisson_input2,E_gran, on_pre='Vinp1=Vhigh')
+    bottomup_in4.connect(j='i%10')
     
     #defining input to the deep layer (from FEFvm)
     if theta_phase=='good':
@@ -233,9 +244,9 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
         topdown_in3.connect(j='i')
     
     
-    g_inputs=[G_topdown2,G_topdown3,G_lateral,G_lateral2,Poisson_input,Poisson_input2]
+    g_inputs=[G_topdown2,G_topdown3,G_lateral,G_lateral2,mdPul_input,mdPul_input2,Poisson_input,Poisson_input2]
     g_inputs=[y for y in g_inputs if y]
-    syn_inputs=[topdown_in2,topdown_in3,lateral_in,lateral_in2,bottomup_in,bottomup_in2]
+    syn_inputs=[topdown_in2,topdown_in3,lateral_in,lateral_in2,bottomup_in,bottomup_in2,bottomup_in3,bottomup_in4]
     syn_inputs=[y for y in syn_inputs if y]
     
 
@@ -245,7 +256,7 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
     R6=SpikeMonitor(FS_gran,record=True)
     R7=SpikeMonitor(SI_deep,record=True)
     
-    V5=StateMonitor(E_gran,['V','sinp','ginp_RS'],record=True)
+    V5=StateMonitor(E_gran,['V','sinp','sinp1','ginp_RS','ginp_RS1'],record=True)
     V6=StateMonitor(FS_gran,'V',record=True)
     V7=StateMonitor(SI_deep,'V',record=True)
     
@@ -297,7 +308,7 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
     # all_J_RSg='-5* uA * cmeter ** -2'
     # all_J_FSg='-15 * uA * cmeter ** -2'
     
-    thal=10* msiemens * cm **-2
+    thal=3 #* msiemens * cm **-2
     
     syn_cond=(all_SIdFSg,all_FSgRSg,all_RSgFSg,all_RSgRSg,all_FSgFSg,all_RSgRSs,all_RSgFSs,all_FSgRSs)
     J=(all_J_RSg,all_J_FSg)
@@ -315,7 +326,7 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
 #    net.add(all_monitors)
     net.add((V1,R1,R2,R3,R4,R5,R6,R7))
     
-    Inpmon=StateMonitor(all_neurons[7],['sinp','ginp_RS'],record=[0])
+    Inpmon=StateMonitor(all_neurons[7],['sinp','ginp_RS','sinp1','ginp_RS1'],record=[0])
     net.add(Inpmon)
     
     # taurinp=0.1*ms
@@ -370,10 +381,26 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
         xlabel('Time (s)')
         ylabel('Neuron index')
         
-        figure()
-        plot(Inpmon.t,Inpmon.sinp[0]*Inpmon.ginp_RS[0])
+        fig, axes = subplots(nrows=3, ncols=1)
+        axes[0].plot(Inpmon.t,Inpmon.sinp[0])
+        ylabel('sinp')
+        ylabel('Pulvinar input (Rhythmic)')
+        axes[1].plot(Inpmon.t,Inpmon.ginp_RS[0])
+        ylabel('ginp')
+        axes[2].plot(Inpmon.t,Inpmon.sinp[0]*Inpmon.ginp_RS[0])
+        ylabel('s*g')
         xlabel('Time (s)')
-        ylabel('Pulvinar input')
+        
+        
+        fig, axes = subplots(nrows=3, ncols=1)
+        axes[0].plot(Inpmon.t,Inpmon.sinp1[0])
+        ylabel('sinp')
+        ylabel('Pulvinar input (Poisson)')
+        axes[1].plot(Inpmon.t,Inpmon.ginp_RS1[0])
+        ylabel('ginp')
+        axes[2].plot(Inpmon.t,Inpmon.sinp1[0]*Inpmon.ginp_RS1[0])
+        ylabel('s*g')
+        xlabel('Time (s)')
     
 
     save_raster('LIP_RS',R1.i,R1.t,new_path)
@@ -391,14 +418,12 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
     
     return
 
-
-
 def run_one_simulation(simu,path,index_var):
 #    print(simu,len(simu))
     start_scope()
     close('all')
 
-    runtime=1*second
+    runtime=.5*second
 #    runtime=5*second
     
     Vrev_inp=0*mV
@@ -535,7 +560,7 @@ def run_one_simulation(simu,path,index_var):
     
 if __name__=='__main__':
         
-    runtime=1*second
+    runtime=2*second
     all_theta_phase=['good'] 
     all_theta_freq=[4*Hz]
     all_t_SOM=[20*msecond]

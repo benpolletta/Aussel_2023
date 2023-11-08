@@ -32,13 +32,18 @@ IK=gK_FS*m**4*(V-VK_FS) : amp * meter ** -2
     
 Iran=sig_ranFS*randn(): amp * meter ** -2 (constant over dt)
 
-Iapp=sinp*ginp_FS*(V-Vrev_inp) : amp * meter ** -2
+Iapp=Iinp1+Iinp2 : amp * meter ** -2
+Iinp1=sinp*ginp_FS*(V-Vrev_inp) : amp * meter ** -2
     dsinp/dt=-sinp/taudinp + (1-sinp)/taurinp*0.5*(1+tanh(Vinp/10/mV)) : 1
     dVinp/dt=1/tauinp*(Vlow-Vinp) : volt
     ginp_FS = ginp_FS_good* int(sin(2*pi*t*theta_freq)>=0) + ginp_FS_bad* int(sin(2*pi*t*theta_freq)<0) : siemens * meter **-2 
     ginp_FS_good : siemens * meter **-2
     ginp_FS_bad : siemens * meter **-2  
     theta_freq : Hz
+Iinp2=sinp1*ginp_FS1*(V-Vrev_inp) : amp * meter ** -2
+    dsinp1/dt=-sinp1/taudinp + (1-sinp1)/taurinp*0.5*(1+tanh(Vinp1/10/mV)) : 1
+    dVinp1/dt=1/tauinp*(Vlow-Vinp1) : volt
+    ginp_FS1 : siemens * meter **-2
 '''
 
 
@@ -73,6 +78,8 @@ if __name__=='__main__' :
     FS.h = '0+0.05*rand()'
     FS.m = '0+0.05*rand()'
     FS.J='5 * uA * cmeter ** -2'
+    
+#    Poisson_input = PoissonInput(FS, 'Vinp1', 10, 0.1/ms, weight=0.1*volt)
     
     V1=StateMonitor(FS,'V',record=[0])
     

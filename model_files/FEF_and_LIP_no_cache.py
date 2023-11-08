@@ -11,7 +11,7 @@ from brian2 import *
 
 
 import os
-prefs.codegen.target = 'numpy'
+prefs.codegen.target = 'cython' #'numpy'
 # tmpdir = os.environ["TMPDIR"]
 # user = os.environ["USER"]
 # pid = os.getpid()
@@ -132,7 +132,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     syn_cond=all_syn_cond[0]
     J=all_J[0]
     
-    j_tonic = (-15 + (gPul/3)) * uA * cmeter ** -2
+    j_tonic = 0 * uA * cmeter ** -2
     
     print('Network setup')
     
@@ -172,6 +172,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         # RS_gran_LIP.ginp_RS_bad=gPul* msiemens * cm **-2
         # FS_gran_LIP.ginp_FS_bad=gPul* msiemens * cm **-2
         RSvm_FEF.ginp_RS2_bad=gPul* msiemens * cm **-2
+        RSvm_FEF.ginp_RS1 = ((3*5/4)* msiemens * cm ** -2) - (.75*gPul * msiemens * cm **--2)
 
     
     net.add(all_neurons_FEF)
@@ -389,7 +390,7 @@ if __name__=='__main__':
     if os.name == 'nt':
         path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
     else :
-        path=path+"/gPul_"+sys.argv[2]+"mScm-2/results_"+sys.argv[1]#datetime.datetime.now())
+        path=path+"/gPulv2_"+sys.argv[2]+"mScm-2/results_"+sys.argv[1]#datetime.datetime.now())
     
     if not os.path.exists(path):
         os.makedirs(path)

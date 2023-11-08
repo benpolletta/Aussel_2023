@@ -148,6 +148,10 @@ def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
     
     S_in_mdPul=Synapses(G_in_mdPul,RS,on_pre='Vinp2=Vhigh')
     S_in_mdPul.connect(j='i')
+    
+    Poisson_input = PoissonGroup(10*N_RS, 13/10*Hz)
+    tonic_mdPul = Synapses(Poisson_input,RS, on_pre='Vinp1=Vhigh')
+    tonic_mdPul.connect(j='i%10')
          
     
     #LIP input
@@ -185,14 +189,14 @@ def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
     R5=SpikeMonitor(RS,record=True)
     R6=SpikeMonitor(SOM,record=True)
     
-    inpmon=StateMonitor(RS,['sinp2','ginp_RS2'],record=True)
+    inpmon=StateMonitor(RS,['sinp2','ginp_RS2','sinp1','ginp_RS1'],record=True)
     # inpmon=StateMonitor(RS,'Isyn',record=True)
     
     V_RS=StateMonitor(RS,'V',record=True)
     V_SOM=StateMonitor(SOM,'V',record=True)
     
     all_neurons=RS,SOM,G_in_mdPul,G_in_LIP
-    all_synapses=S_RSRS,S_RSSOM,S_SOMRS,S_in_mdPul,S_LIP_in,S_LIP_in2
+    all_synapses=S_RSRS,S_RSSOM,S_SOMRS,S_in_mdPul,tonic_mdPul,S_LIP_in,S_LIP_in2
     all_monitors=R5,R6,V_RS,V_SOM,inpmon
     
     return all_neurons,all_synapses,all_monitors

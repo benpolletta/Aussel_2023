@@ -11,8 +11,13 @@ from brian2 import *
 
 from scipy import signal
 
-from model_files.LIP_full import *
-from model_files.FEF_full import *
+try:
+    from LIP_full import *
+    from FEF_full import *
+except:
+    from model_files.LIP_full import *
+    from model_files.FEF_full import *
+        
 
 from itertools import *
 from joblib import Parallel, delayed
@@ -364,31 +369,15 @@ if __name__=='__main__':
     
     os.mkdir(path)
     
-    N=50
-    liste_target_time=[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
- 
-    liste_simus=[]
-    for t in liste_target_time:
-        liste_simus+=[t]*N
-    
-    liste_simus=[[liste_simus[i],i+750] for i in range(len(liste_simus))]
-    
-    simus_pas_faites=list(range(700))
-    
-    order=[50*i for i in range(len(liste_target_time))]
-    for ind in range(1,50):
-        order+=[50*i+ind for i in range(len(liste_target_time))]
-    
-    liste_simus=[liste_simus[i] for i in order if i in simus_pas_faites]
+    t_SI=[20*msecond]
+    t_FS=[5*msecond]
+    theta_phase=['mixed']
+    g_LIP_FEF_v=[0.15 * msiemens * cm**-2]
+    target_on=[True]
+    runtime=2*second
 
-    liste_simus.reverse()
-    
-    print(liste_simus)
-    
-    print('Number of simulations: '+str(len(liste_simus)))
-    
-    for simu in liste_simus:
-        FEF_and_LIP(simu,path)
-        #clear_cache('cython')
-    
-#    clear_cache('cython')
+    target_time=850*msecond#[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
+ 
+    simu = [target_time, t_SI, t_FS, theta_phase, g_LIP_FEF_v, target_on, runtime]
+     
+    FEF_and_LIP(simu,path,plot_raster=True)

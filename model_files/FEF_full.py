@@ -12,14 +12,22 @@ Created on Wed Feb  5 11:24:49 2020
 from brian2 import *
 
 from scipy import signal
-from model_files.cells.RS_FEF import *
-from model_files.cells.RS_FEFdec import *
-from model_files.cells.FS_FEF import *
-from model_files.cells.SI_FEF import *
-from model_files.cells.VIP_FEF import *
 
-from model_files.FEF_visuomotor_module import *
-from model_files.FEF_visual_module import *
+try:
+    from cells.RS_FEF import *
+    from cells.FS_FEF import *
+    from cells.SI_FEF import *
+    from cells.VIP_FEF import *
+    from FEF_visuomotor_module import *
+    from FEF_visual_module import *
+except:
+    from model_files.cells.RS_FEF import *
+    from model_files.cells.FS_FEF import *
+    from model_files.cells.SI_FEF import *
+    from model_files.cells.VIP_FEF import *
+    from model_files.FEF_visuomotor_module import *
+    from model_files.FEF_visual_module import *
+
 
 runtime=1*second
     

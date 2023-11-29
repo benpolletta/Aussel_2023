@@ -10,10 +10,16 @@ Created on Wed Apr 29 08:58:41 2020
 from brian2 import *
 
 from scipy import signal
-from model_files.cells.RS_FEF import *
-from model_files.cells.FS_FEF import *
-from model_files.cells.SI_FEF import *
-from model_files.cells.VIP_FEF_vis import *
+try:
+    from cells.RS_FEF import *
+    from cells.FS_FEF import *
+    from cells.SI_FEF import *
+    from cells.VIP_FEF_vis import *
+except:
+    from model_files.cells.RS_FEF import *
+    from model_files.cells.FS_FEF import *
+    from model_files.cells.SI_FEF import *
+    from model_files.cells.VIP_FEF_vis import *
 
 def save_raster(name,raster_i,raster_t,path):
     raster_file=open(path+'/raster_'+name+'_i.txt','w')

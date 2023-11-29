@@ -6,16 +6,18 @@ from brian2 import *
 defaultclock.dt = 0.01*ms
 
 eq_SI_FEF_more_h='''
-dV/dt=1/C_SI*(-J-Isyn-Igap-Iran-Iapp-IL-INa-IK-IAR-Iapp2) : volt
+dV/dt=1/C_SI*(-J-Isyn-Igap-Iran-Iapp-IL-INa-IK-IAR-Iapp2 - Iinp_latinh) : volt
 J : amp * meter ** -2
-Isyn=IsynRS_FEF_VM+IsynSI_FEF_VM+IsynSI2_FEF_VM+IsynRS_FEF_V+IsynFS_FEF_V+Isyn_LIP+Isyn_mdPul : amp * meter ** -2
+Isyn=IsynRS_FEF_VM+IsynSI_FEF_VM+IsynSI2_FEF_VM+IsynVIP_FEF_VM+IsynRS_FEF_V+IsynFS_FEF_V+Isyn_LIP+Isyn_mdPul+Isyn_FEF_VM_cued : amp * meter ** -2
 IsynRS_FEF_VM : amp * meter ** -2
 IsynSI_FEF_VM : amp * meter ** -2
+IsynVIP_FEF_VM : amp * meter ** -2
 IsynSI2_FEF_VM : amp * meter ** -2
 IsynRS_FEF_V : amp * meter ** -2
 IsynFS_FEF_V : amp * meter ** -2
 Isyn_LIP : amp * meter ** -2
 Isyn_mdPul : amp * meter ** -2
+Isyn_FEF_VM_cued : amp * meter ** -2
 
 Igap : amp * meter ** -2
 IL=gL_SI*(V-VL_SI) : amp * meter ** -2
@@ -44,6 +46,13 @@ Iapp2=sinp2*ginp_SI2*(V-Vrev_inp) : amp * meter ** -2
     dsinp2/dt=-sinp2/taudinp + (1-sinp2)/taurinp*0.5*(1+tanh(Vinp2/10/mV)) : 1
     dVinp2/dt=1/tauinp*(Vlow-Vinp2) : volt
     ginp_SI2 : siemens * meter **-2
+    
+Iinp_latinh=sinp_latinh*ginp_SI_latinh*(V-(-80*mV)) : amp * meter ** -2
+    dsinp_latinh/dt=-sinp_latinh/(20*ms) + (1-sinp_latinh)/(0.25*ms)*0.5*(1+tanh(Vinp_latinh/10/mV)) : 1
+    dVinp_latinh/dt=1/(20*ms)*(Vlow-Vinp_latinh) : volt
+    ginp_SI_latinh : siemens * meter **-2 
+        
+
 '''
 
 

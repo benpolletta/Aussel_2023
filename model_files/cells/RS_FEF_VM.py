@@ -7,10 +7,9 @@ defaultclock.dt = 0.01*ms
 
 eq_RS_FEF='''
 dV/dt=1/C_RS*(-J-Isyn-Igap-Iran-Iapp-IL-INa-IK-IAR) : volt
-J = J_fixed+noise : amp * meter ** -2
+J = J_fixed+noise(t,i) : amp * meter ** -2
 J_fixed : amp * meter ** -2
-noise : amp * meter ** -2
-Isyn=IsynRS_FEF_VM+IsynSI_FEF_VM+IsynSI2_FEF_VM+IsynRS_FEF_V+IsynFS_FEF_V+Isyn_LIP+Isyn_mdPul : amp * meter ** -2
+Isyn=IsynRS_FEF_VM+IsynSI_FEF_VM+IsynSI2_FEF_VM+IsynRS_FEF_V+IsynFS_FEF_V+Isyn_LIP+Isyn_mdPul+Isyn_FEF_VM_cued : amp * meter ** -2
 IsynRS_FEF_VM : amp * meter ** -2
 IsynSI_FEF_VM : amp * meter ** -2
 IsynSI2_FEF_VM : amp * meter ** -2
@@ -18,8 +17,9 @@ IsynRS_FEF_V : amp * meter ** -2
 IsynFS_FEF_V : amp * meter ** -2
 Isyn_LIP : amp * meter ** -2
 Isyn_mdPul : amp * meter ** -2
+Isyn_FEF_VM_cued : amp * meter ** -2
 Igap : amp * meter ** -2
-Iapp = Iinp1 + Iinp2 + Iinp3 : amp * meter ** -2
+Iapp = Iinp1 + Iinp2 + Iinp3 + Iinp_latinh : amp * meter ** -2
 IL=gL_RS*(V-VL_RS) : amp * meter ** -2
 INa=gNa_RS*m0**3*h*(V-VNa_RS) : amp * meter ** -2
     m0=1/(1+exp((-V-34.5*mV)/10/mV)) : 1
@@ -50,6 +50,11 @@ Iinp2=sinp2*ginp_RS2*(V-Vrev_inp) : amp * meter ** -2
     ginp_RS2_good : siemens * meter **-2
     ginp_RS2_bad : siemens * meter **-2   
     
+Iinp_latinh=sinp_latinh*ginp_RS_latinh*(V-(-80*mV)) : amp * meter ** -2
+    dsinp_latinh/dt=-sinp_latinh/(20*ms) + (1-sinp_latinh)/(0.25*ms)*0.5*(1+tanh(Vinp_latinh/10/mV)) : 1
+    dVinp_latinh/dt=1/(20*ms)*(Vlow-Vinp_latinh) : volt
+    ginp_RS_latinh : siemens * meter **-2 
+    
 Iinp3: amp * meter ** -2
 '''
 
@@ -78,16 +83,48 @@ g_ranRS_FEF_VM=0.03* msiemens * cm **-2
 
 if __name__=='__main__' :
     start_scope()
+    close('all')
+    prefs.codegen.target = 'numpy' 
     Vrev_inp=0*mV
     taurinp=0.1*ms
     taudinp=0.5*ms
     tauinp=taudinp
-    tauinp3=taudinp
-    taurinp3=taurinp
-    taudinp3=taudinp
     Vhigh=0*mV
     Vlow=-80*mV
     ginp=0* msiemens * cm **-2
+    
+    Vrev_inp=0*mV
+    taurinp=0.1*ms
+    taudinp=0.5*ms
+    tauinp=taudinp
+    Vhigh=0*mV
+    Vlow=-80*mV
+    
+    taurinp2=2*ms
+    taudinp2=10*ms
+    tauinp2=taudinp2
+    
+    # taurinp3=2*ms
+    # taudinp3=40*ms
+    # tauinp3=taudinp3
+    
+    taurinp3=0.25*ms
+    taudinp3=20*ms
+    tauinp3=taudinp3
+    
+    sig_ranRS_FEF_VM=0.15* mamp * cm **-2*0.5*0
+    g_ranRS_FEF_VM=0.03* msiemens * cm **-2*0
+    
+    sig_ranRS_FEF_VM=0.15* mamp * cm **-2*0.1
+    g_ranRS_FEF_VM=0.03* msiemens * cm **-2*0
+    
+    # gAR_RS_FEF_VM=120 * msiemens * cm **-2
+    gAR_RS_FEF_VM=120 * msiemens * cm **-2
+    Vrev_inp=-80*mV
+    
+    noise_good=0* uA * cmeter ** -2
+    noise_array=ones((200000,20))* noise_good
+    noise=TimedArray(noise_array,dt=defaultclock.dt)
         
     RS=NeuronGroup(1,eq_RS_FEF,threshold='V>-20*mvolt',refractory=3*ms,method='rk4')
 #    RS.V = '-70*mvolt+10*rand()*mvolt'
@@ -95,49 +132,68 @@ if __name__=='__main__' :
 #    RS.m = '0+0.05*rand()'
 #    RS.mAR = '0.035+0.025*rand()'
 #    RS.J='1 * uA * cmeter ** -2'
-    RS.V = '-60*mvolt'
-    RS.h = '0.56'
-    RS.m = '0.038'
+    RS.V = '-70*mvolt'
+    RS.h = '0'
+    RS.m = '0'
     RS.mAR = '0.01'
-    RS.J_fixed='-1 * uA * cmeter ** -2'
+    RS.J_fixed='45 * uA * cmeter ** -2'
+    # RS.J_fixed='20 * uA * cmeter ** -2'
+    
+    RS.ginp_RS2_good=5* msiemens * cm **-2
+    RS.ginp_RS2_bad=5* msiemens * cm **-2
 
     
-#    Poisson_input = PoissonGroup(1,0.1/ms)
-#    in_syn = Synapses(Poisson_input, RS, on_pre='s_ran+=0.0001') #defaultclock.dt
-#    in_syn.connect(j='i')
+    Poisson_input = PoissonGroup(1,10*Hz)
+    in_syn = Synapses(Poisson_input, RS, on_pre='Vinp2=Vhigh') #defaultclock.dt
+    in_syn.connect(j='i')
     
     
-    V1=StateMonitor(RS,'V',record=[0])
+    V1=StateMonitor(RS,['V','Vinp2','IAR'],record=[0])
     
-#    I1=StateMonitor(RS,'IL',record=[0])
+    M1=SpikeMonitor(Poisson_input)
+    
+    I1=StateMonitor(RS,'Iinp2',record=[0])
 #    I2=StateMonitor(RS,'INa',record=[0])
 #    I3=StateMonitor(RS,'IK',record=[0])
 #    I4=StateMonitor(RS,'IAR',record=[0])
-    I5=StateMonitor(RS,'J',record=[0])
+    # I5=StateMonitor(RS,'J',record=[0])
     
-    M1=StateMonitor(RS,'m0',record=[0])
-    M2=StateMonitor(RS,'h',record=[0])
-    M3=StateMonitor(RS,'m',record=[0])
-    M4=StateMonitor(RS,'mAR',record=[0])
+    # M1=StateMonitor(RS,'m0',record=[0])
+    # M2=StateMonitor(RS,'h',record=[0])
+    # M3=StateMonitor(RS,'m',record=[0])
+    # M4=StateMonitor(RS,'mAR',record=[0])
     
-    run(1*second)
+    prefs.codegen.target = 'cython' 
+    
+    run(2*second)
     
     figure()
     plot(V1.t/second,V1.V[0]/volt)
+    plot(M1.t,[-0.05,]*len(M1.i),'r.')
+    
     xlabel('Time (s)')
     ylabel('Membrane potential (V)')
     title('RS cell')
     
-#    figure()
+    # figure()
+    # plot(I1.t/second,I1.Iinp2[0])
+    
+    # figure()
+    # plot(V1.t/second,V1.Vinp2[0])
+    
+    # figure()
+    # plot(M1.t,M1.i,'r.')
+    
+    figure()
 #    plot(I1.t/second,I1.IL[0],label='L')
 #    plot(I1.t/second,I2.INa[0],label='Na')
 #    plot(I1.t/second,I3.IK[0],label='K')
-#    plot(I1.t/second,I4.IAR[0],label='AR')
-#    title('Synaptic currents')
-#    legend()
+    plot(V1.t/second,V1.IAR[0],label='AR')
+    title('Synaptic currents')
+    legend()
     
-#    figure()
-#    plot(I5.t/second,I5.J[0])
+    # figure()
+    # plot(I5.t/second,I5.J[0])
     
 #    figure()
 #    plot(M1.t/second,M1.m0[0],label='m0')

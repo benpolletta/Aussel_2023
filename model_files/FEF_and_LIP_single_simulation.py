@@ -11,12 +11,8 @@ from brian2 import *
 
 from scipy import signal
 
-try:
-    from LIP_full import *
-    from FEF_full import *
-except:
-    from model_files.LIP_full import *
-    from model_files.FEF_full import *
+from model_files.LIP_full import *
+from model_files.FEF_full import *
 
 from itertools import *
 from joblib import Parallel, delayed
@@ -56,10 +52,10 @@ def generate_syn(source,target,syntype,connection_pattern,g_i,taur_i,taud_i,V_i)
 
 def FEF_and_LIP(simu,path,plot_raster=False):
     prefs.codegen.target = 'numpy' 
-    target_time,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6]
+    modeled_screen_location,target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
     
     if not plot_raster :
-        new_path=path+"/results_"
+        new_path=path+"/results_"+str(N_simu)
         os.mkdir(new_path)
     else :
         new_path=path
@@ -116,9 +112,9 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     RS_sup_LIP,IB_LIP,SI_deep_LIP=all_neurons_LIP[0],all_neurons_LIP[5],all_neurons_LIP[9]
     RS_gran_LIP,FS_gran_LIP=all_neurons_LIP[7],all_neurons_LIP[8]
     
-    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,target_on,runtime,target_time)
+    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(modeled_screen_location,N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,target_on,runtime,target_time)
     R8,R9,V_RS,V_SOM,inp_mon_FEF,R11,R12,R13,R14,mon_RS=all_monitors_FEF
-    RSvm_FEF,SIvm_FEF,RSv_FEF,SIv_FEF,VIPv_FEF=all_neurons_FEF[0],all_neurons_FEF[1],all_neurons_FEF[4],all_neurons_FEF[7],all_neurons_FEF[6]
+    RSvm_FEF,SIvm_FEF,RSv_FEF,SIv_FEF,VIPv_FEF=all_neurons_FEF[0],all_neurons_FEF[1],all_neurons_FEF[6],all_neurons_FEF[9],all_neurons_FEF[8]
     
     IB_LIP.ginp_IB=0* msiemens * cm **-2 #the input to RS_sup_LIP is provided with synapses from FEF 
     SI_deep_LIP.ginp_SI=0* msiemens * cm **-2
@@ -135,12 +131,13 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         RS_gran_LIP.ginp_RS_bad=15* msiemens * cm **-2
         FS_gran_LIP.ginp_FS_bad=15* msiemens * cm **-2
     if theta_phase=='mixed':
-        RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
-        RSvm_FEF.ginp_RS2_good=2.5* msiemens * cm **-2
-        FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
-        RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
-        RSvm_FEF.ginp_RS2_bad=5* msiemens * cm **-2
-        FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
+        if modeled_screen_location=='Cued location' or modeled_screen_location=='Same object location (uncued 1)':
+            RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
+            RSvm_FEF.ginp_RS2_good=2.5* msiemens * cm **-2
+            FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
+            RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
+            RSvm_FEF.ginp_RS2_bad=5* msiemens * cm **-2
+            FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
 
     
     net.add(all_neurons_FEF)
@@ -153,7 +150,10 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     net.add(all_monitors_LIP)
     
     S_FEF_IB_LIP=generate_syn(RSvm_FEF,IB_LIP,'Isyn_FEF','',0*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
-    S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.05*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
+    if modeled_screen_location=='Cued location':
+        S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.05*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
+    else:
+        S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.01*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
     S_LIP_RS_FEF=generate_syn(RS_sup_LIP,RSvm_FEF,'Isyn_LIP','',0.009*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
     S_LIP_FS_FEF=generate_syn(RS_sup_LIP,SIvm_FEF,'Isyn_LIP','',0.009*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
 
@@ -167,6 +167,18 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     RSv_FEF.ginp_RS2=2.5* msiemens * cm **-2
     SIv_FEF.ginp_SI2=2.5* msiemens * cm **-2
     VIPv_FEF.ginp_VIP2=2.5* msiemens * cm **-2
+    
+    RSdec=all_neurons_FEF[-1]
+    # RSdec.J='5 * uA * cmeter ** -2'
+    
+    if modeled_screen_location=='Cued location':
+        RSdec.Jbegin='50 * uA * cmeter ** -2'   
+        RSdec.Jend='50 * uA * cmeter ** -2'  
+        RSdec.noiseamp = 90 * uA * cmeter ** -2
+    else :
+        RSdec.Jbegin='50 * uA * cmeter ** -2'   
+        RSdec.Jend='50 * uA * cmeter ** -2'  
+        RSdec.noiseamp = 0 * uA * cmeter ** -2        
         
     net.add(S_FEF_IB_LIP)
     net.add(S_FEF_SIdeep_LIP)
@@ -195,9 +207,8 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     tauinp3=taudinp3
     
     noise_good=0* uA * cmeter ** -2
-    noise_level=-30* uA * cmeter ** -2
-    # noise_level=-40* uA * cmeter ** -2
-    noise_array=ones((200000,20))* noise_level
+    noise_level=0* uA * cmeter ** -2
+    # noise_level=-30* uA * cmeter ** -2
     if theta_phase=='mixed':
         t0,t1=125*ms,250*ms
         i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1
@@ -207,7 +218,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
             t0,t1=t0+250*ms,t1+250*ms
             i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1
             noise_array[i0:i1,:]=noise_level* rand(12500,20)
-
+            
     elif theta_phase=='good':
         noise_array=ones((200000,20))* noise_good
     elif theta_phase=='bad':
@@ -272,6 +283,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         title('Visual-Motor Neurons')
         plot(R8.t,R8.i+60,'r.',label='RS cells')
         plot(R9.t,R9.i+40,'g.',label='SOM cells')
+        # plot(RVIP_FEF.t,RVIP_FEF.i+40,'k.',label='VIP cells')
         xlim(0.2,runtime/second)
         legend(loc='upper left') 
         xlabel('Time (s)')
@@ -295,6 +307,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         plot(R1.t,R1.i+140+up,'r.',label='RS cells')
         plot(R2.t,R2.i+120+up,'b.',label='FS cells')
         plot(R3.t,R3.i+100+up,'g.',label='SOM cells')
+        # plot(RVIP_LIP.t,RVIP_LIP.i+100+up,'k.',label='VIP cells')
         plot([0.2,runtime/second],[95+up,95+up],'k--')
         plot(R5.t,R5.i+70+up,'r.')
         plot(R6.t,R6.i+50+up,'b.')
@@ -315,6 +328,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         up=140
         plot(R8.t,R8.i+20+up,'r.')
         plot(R9.t,R9.i+0+up,'g.')
+        # plot(RVIP_FEF.t,RVIP_FEF.i+0+up,'k.',label='VIP cells')
         xlim(0.2,runtime/second)
         plot([0.2,runtime/second],[up-10,up-10],'k')
 
@@ -333,8 +347,8 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         # figure()
         # plot(inp_mon_FEF.t,inp_mon_FEF.Iinp2[0],'r.',label='RS cells')
         
-        figure()
-        plot(inp_mon_FEF.t,inp_mon_FEF.Isyn[0])
+        # figure()
+        # plot(inp_mon_FEF.t,inp_mon_FEF.Isyn[0])
         
 #        show()
     
@@ -350,17 +364,31 @@ if __name__=='__main__':
     
     os.mkdir(path)
     
-    t_SI=[20*msecond]
-    t_FS=[5*msecond]
-    theta_phase=['mixed']
-    g_LIP_FEF_v=[0.15 * msiemens * cm**-2]
-    target_on=[True]
-    runtime=2*second
-    
-    target_time=850*msecond#[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
+    N=50
+    liste_target_time=[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
  
-    simu = [target_time, t_SI, t_FS, theta_phase, g_LIP_FEF_v, target_on, runtime]
+    liste_simus=[]
+    for t in liste_target_time:
+        liste_simus+=[t]*N
     
-    FEF_and_LIP(simu,path,plot_raster=True)
+    liste_simus=[[liste_simus[i],i+750] for i in range(len(liste_simus))]
+    
+    simus_pas_faites=list(range(700))
+    
+    order=[50*i for i in range(len(liste_target_time))]
+    for ind in range(1,50):
+        order+=[50*i+ind for i in range(len(liste_target_time))]
+    
+    liste_simus=[liste_simus[i] for i in order if i in simus_pas_faites]
 
+    liste_simus.reverse()
+    
+    print(liste_simus)
+    
+    print('Number of simulations: '+str(len(liste_simus)))
+    
+    for simu in liste_simus:
+        FEF_and_LIP(simu,path)
+        #clear_cache('cython')
+    
 #    clear_cache('cython')

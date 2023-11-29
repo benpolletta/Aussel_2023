@@ -34,29 +34,32 @@ interface.minsize(1000, 900)
 interface.option_add("*Font", "courier")
 interface.option_add("*Background", "white")
 
-# modeled_zone=StringVar(interface,'FEF and LIP full network')
+modeled_zone=StringVar(interface,'FEF and LIP full network')
 # modeled_zone=StringVar(interface,'FEF visuo_motor module alone')
-modeled_zone=StringVar(interface,'LIP alone')
+# modeled_zone=StringVar(interface,'LIP alone')
 theta_phase=StringVar(interface,'mixed')
 # theta_phase=StringVar(interface,'good')
 # theta_phase=StringVar(interface,'bad')
 target_presence=StringVar(interface,'True')
 # target_presentation_time=DoubleVar(interface,0.6)
 target_presentation_time=DoubleVar(interface,0.675)
-# runtime=DoubleVar(interface,1)
-runtime=DoubleVar(interface,2)
+runtime=DoubleVar(interface,1)
+# runtime=DoubleVar(interface,2)
 g_LIP_FEF_v=DoubleVar(interface,0.015)
 t_FS=DoubleVar(interface,0.005)
 t_SOM=DoubleVar(interface,0.020)
+
+modeled_screen_location=StringVar(interface,'Cued location')
 
 
 aborted=True
 
 
 def start():
-    global aborted,modeled_zone,theta_phase,target_presence,target_presentation_time,target_presentation_duration,runtime,g_LIP_FEF_v,t_FS,t_SOM,path
+    global aborted,modeled_zone,modeled_screen_location,theta_phase,target_presence,target_presentation_time,target_presentation_duration,runtime,g_LIP_FEF_v,t_FS,t_SOM,path
     
     modeled_zone=modeled_zone.get()
+    modeled_screen_location=modeled_screen_location.get()
     theta_phase=theta_phase.get()
     target_presence=target_presence.get()
     target_presentation_time=target_presentation_time.get()*second
@@ -81,6 +84,7 @@ def start():
     os.mkdir(path)
     
     param_file=open(path+'/parameters.txt','w')
+    param_file.write('Modeled screen location: '+str(modeled_screen_location)+'\n')
     param_file.write('Modeled region: '+str(modeled_zone)+'\n')
     param_file.write('Theta phase: '+str(theta_phase)+'\n')
     param_file.write('Target presence: '+str(target_presence)+'\n')
@@ -91,7 +95,7 @@ def start():
     param_file.write('SOM inhibition time constant: '+str(t_SOM))
     param_file.close()    
     
-    simu=(target_presentation_time,0,t_SOM,t_FS,theta_phase,g_LIP_FEF_v,target_presence,runtime)
+    simu=(modeled_screen_location,target_presentation_time,0,t_SOM,t_FS,theta_phase,g_LIP_FEF_v,target_presence,runtime)
     
     if modeled_zone=='FEF and LIP full network':
         FEF_and_LIP(simu,path,plot_raster=True)
@@ -147,7 +151,7 @@ photo_modele = ImageTk.PhotoImage(image_modele)
 
 label_modele = Label(tab1,image=photo_modele)
 label_modele.image = photo_modele # keep a reference!
-label_modele.place(x=50,y=120)
+label_modele.place(x=50,y=140)
 
 b0 = Radiobutton(tab1, variable=modeled_zone, text='FEF and LIP full network', value='FEF and LIP full network')
 b0.place(x=210, y=40) 
@@ -158,6 +162,14 @@ b2.place(x=210, y=60)
 b3 = Radiobutton(tab1, variable=modeled_zone, text='FEF visual module alone', value='FEF visual module alone')
 b3.place(x=510, y=60)
 
+question_location=Label(tab1,text='Choose which screen location to model:')
+question_location.place(x=10,y=100) 
+b4 = Radiobutton(tab1, variable=modeled_screen_location, text='Cued location', value='Cued location')
+b4.place(x=300, y=100) 
+b5 = Radiobutton(tab1, variable=modeled_screen_location, text='Same object location (uncued 1)', value='Same object location (uncued 1)')
+b5.place(x=10, y=120)
+b6 = Radiobutton(tab1, variable=modeled_screen_location, text='Different object location (uncued 2)', value='Different object location (uncued 2)')
+b6.place(x=300, y=120)
 
 ### Tab 2 : Network parameters:
 

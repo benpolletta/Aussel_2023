@@ -12,27 +12,17 @@ from brian2 import *
 start_scope()
 
 from scipy import signal
+from model_files.cells.RS_LIP import *
+from model_files.cells.FS_LIP import *
+from model_files.cells.SI_LIP import *
+from model_files.cells.VIP_FEF import *
+from model_files.cells.IB_soma_LIP import *
+from model_files.cells.IB_axon_LIP import *
+from model_files.cells.IB_apical_dendrite_LIP import *
+from model_files.cells.IB_basal_dendrite_LIP import *
 
-try:
-    from cells.RS_LIP import *
-    from cells.FS_LIP import *
-    from cells.SI_LIP import *
-    from cells.IB_soma_LIP import *
-    from cells.IB_axon_LIP import *
-    from cells.IB_apical_dendrite_LIP import *
-    from cells.IB_basal_dendrite_LIP import *
-    from LIP_superficial_layer import *
-    from LIP_beta1 import *
-except:
-    from model_files.cells.RS_LIP import *
-    from model_files.cells.FS_LIP import *
-    from model_files.cells.SI_LIP import *
-    from model_files.cells.IB_soma_LIP import *
-    from model_files.cells.IB_axon_LIP import *
-    from model_files.cells.IB_apical_dendrite_LIP import *
-    from model_files.cells.IB_basal_dendrite_LIP import *
-    from model_files.LIP_superficial_layer import *
-    from model_files.LIP_beta1 import *
+from model_files.LIP_superficial_layer import *
+from model_files.LIP_beta1 import *
 
 import os
 
@@ -93,9 +83,8 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
     SI_deep.m = '0+0.05*rand()'
     SI_deep.mAR = '0.02+0.04*rand()'
     SI_deep.J='35* uA * cmeter ** -2' #article SI=50, code=35, Mark = 45
- 
-    mdpul_input_amplitude = thal
     
+ 
     if theta_phase=='bad':
         SI_deep.ginp_SI=0* msiemens * cm **-2 #FEF input to deep SOM cells is zero
         mdpul_input_amplitude=0* msiemens * cm **-2 #mdPul input to granular layer is zero
@@ -157,7 +146,7 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
     #From deep SOM cells    
     S_SIdeepIB=generate_syn(SI_deep,IB_bd,'IsynSI_LIP_deep','',10* msiemens * cm **-2,0.25*ms,t_SI,-80*mV)
     S_SIdeepFSgran=generate_syn(SI_deep,FS_gran,'IsynSI_LIP_deep','',gSIdFSg,0.25*ms,t_SI,-80*mV)
-    
+
     
     def generate_spike_timing(N,f,start_time,end_time=runtime):
         list_time_and_i=[]
@@ -254,7 +243,7 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
 #    print(simu,len(simu))
     start_scope()
 
-    target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7]
+    modeled_screen_location,target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
 
     if not plot_raster :
         new_path=path+"/results_"+str(N_simu)
@@ -564,4 +553,4 @@ if __name__=='__main__':
             current_fig.savefig(new_path+'/figures/figure'+str(i)+'.png')
 
     
-    #clear_cache('cython')    
+    clear_cache('cython')    

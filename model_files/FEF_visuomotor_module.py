@@ -10,16 +10,10 @@ Created on Mon Dec  2 14:28:44 2019
 from brian2 import *
 
 from scipy import signal
-try:
-    from cells.RS_FEF_VM import *
-    from cells.FS_FEF import *
-    from cells.SI_FEF_more_h import *
-    from cells.VIP_FEF import *
-except:
-    from model_files.cells.RS_FEF_VM import *
-    from model_files.cells.FS_FEF import *
-    from model_files.cells.SI_FEF_more_h import *
-    from model_files.cells.VIP_FEF import *
+from model_files.cells.RS_FEF_VM import *
+from model_files.cells.FS_FEF import *
+from model_files.cells.SI_FEF_more_h import *
+from model_files.cells.VIP_FEF import *
 
 def save_raster(name,raster_i,raster_t,path):
     raster_file=open(path+'/raster_'+name+'_i.txt','w')
@@ -39,9 +33,42 @@ def zeros_ones_monitor(spikemon,record_dt,runtime):
         zeros_ones[int(time/record_dt)]+=1
     return zeros_ones
 
-def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
-    
-    LIP_input = 0* msiemens * cm **-2
+def read_raster_times_and_indexes(file_t,file_i):
+    all_times=[]
+    raster_t=open(file_t,'r')
+    time_str=[]
+    for line in raster_t:
+        time_str=line.split(',')[:-1]
+    for line in time_str:
+        if line[-2]=='m':
+            time=float(line[:-2])*msecond
+        elif line[-2]=='u':
+            time=float(line[:-2])*usecond
+        else :
+            time=float(line[:-1])*second
+        all_times.append(time)
+    raster_t.close()
+        
+    all_i=[]
+    raster_i=open(file_i,'r')
+    for line in raster_i:
+        all_i=line.split(',')[:-1]
+    all_i=[int(i) for i in all_i]
+    raster_i.close()
+    return array(all_times),array(all_i)   
+
+
+def generate_FEFvm_cued_from_raster(file_t,file_i):
+    all_times,all_i=read_raster_times_and_indexes(file_t,file_i)
+    FEFvm_cued_spikes = SpikeGeneratorGroup(20, all_i, all_times*second)
+    FEFvm_cued_eqs='''dV/dt=1/(1*ms)*(-70*mvolt-V) : volt'''
+    FEFvm_cued=NeuronGroup(20,FEFvm_cued_eqs,method='exact',threshold='V>-20*mvolt',refractory=3*ms)
+    FEFvm_cued.V=-70*mvolt
+    FEFvm_cued_syn=Synapses(FEFvm_cued_spikes,FEFvm_cued,on_pre='V=10*mvolt')
+    FEFvm_cued_syn.connect(j='i')
+    return FEFvm_cued_spikes,FEFvm_cued,FEFvm_cued_syn
+
+def generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
     
     if theta_phase=='bad':
         LIP_input=3* msiemens * cm **-2
@@ -74,6 +101,7 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
     SOM.m = '0+0.05*rand()'
     # SOM.J='40 * uA * cmeter ** -2'
     SOM.J='40 * uA * cmeter ** -2'
+     
     
     ##Synapses
     eq_syn='''_post=s_i*g_i*(V_post-V_i) : amp * meter ** -2 (summed)
@@ -103,7 +131,8 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
 
     #From SOM cells,
     S_SOMRS=generate_syn(SOM,RS,'IsynSI_FEF_VM','',0.8*msiemens * cm **-2,0.25*ms,t_SI,-80*mV) #0.35
-    
+
+        
     def generate_spike_timing(N,f,start_time,end_time=runtime):
         list_time_and_i=[]
         for i in range(N):
@@ -117,12 +146,10 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
 
     #Defining inputs
     #mdPul input
-    RS.ginp_RS2_good=2.5* msiemens * cm **-2
-    RS.ginp_RS2_bad=5* msiemens * cm **-2
-    # RS.ginp_RS2_good=5* msiemens * cm **-2
-    # RS.ginp_RS2_bad=5* msiemens * cm **-2
-    # RS.ginp_RS2_good=0* msiemens * cm **-2
-    # RS.ginp_RS2_bad=0* msiemens * cm **-2
+    if modeled_screen_location=='Cued location' or modeled_screen_location=='Same object location (uncued 1)':
+        RS.ginp_RS2_good=2.5* msiemens * cm **-2
+        RS.ginp_RS2_bad=5* msiemens * cm **-2
+
     fmdPul=13*Hz
     # fmdPul=30*Hz
     spikes_mdPul=generate_spike_timing(N_RS,fmdPul,0*ms,end_time=3000*ms)
@@ -176,6 +203,17 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
     S_LIP_in2=Synapses(G_in_LIP,RS,on_pre='Vinp=Vhigh')
     S_LIP_in2.connect(j='i')
     
+
+    #lateral inhibition inputs
+    spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster("model_files/fefvm/raster_FEF SI2 vm_t.txt", "model_files/fefvm/raster_FEF SI2 vm_i.txt")
+    
+    if modeled_screen_location=='Same object location (uncued 1)' or modeled_screen_location=='Different object location (uncued 2)':
+        S_in_FEFvm_RS=generate_syn(G_in_FEFvm,RS,'Isyn_FEF_VM_cued','',0.2*msiemens * cm **-2,0.25*ms,t_SI,-80*mV)
+    else : 
+        S_in_FEFvm_RS=generate_syn(G_in_FEFvm,RS,'Isyn_FEF_VM_cued','',0*msiemens * cm **-2,0.25*ms,t_SI,-80*mV)
+        
+
+    
     #Define monitors and run network :
     R5=SpikeMonitor(RS,record=True)
     R6=SpikeMonitor(SOM,record=True)
@@ -186,8 +224,8 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
     V_RS=StateMonitor(RS,'V',record=True)
     V_SOM=StateMonitor(SOM,'V',record=True)
     
-    all_neurons=RS,SOM,G_in_mdPul,G_in_LIP
-    all_synapses=S_RSRS,S_RSSOM,S_SOMRS,S_in_mdPul,S_LIP_in,S_LIP_in2
+    all_neurons=RS,SOM,G_in_mdPul,G_in_LIP,spikes_FEFvm,G_in_FEFvm
+    all_synapses=S_RSRS,S_RSSOM,S_SOMRS,S_in_mdPul,S_LIP_in,S_LIP_in2,FEF_vm_cued_syn,S_in_FEFvm_RS
     all_monitors=R5,R6,V_RS,V_SOM,inpmon
     
     return all_neurons,all_synapses,all_monitors
@@ -195,7 +233,7 @@ def generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
 def sim_FEF_vm_alone(simu,path,plot_raster=False):
     start_scope()   
     
-    target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7]
+    modeled_screen_location,target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
     prefs.codegen.target = 'numpy'
     
     defaultclock.dt = 0.01*ms
@@ -219,7 +257,7 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     ginp=0* msiemens * cm **-2
     
     N_RS,N_SOM=20,20
-    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime)    
+    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime)    
     
     net=Network()
     net.add(all_neurons)
@@ -244,7 +282,6 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     noise_level=-30* uA * cmeter ** -2
     # noise_level=0* uA * cmeter ** -2
     theta_frequency=4*Hz
-    noise_array = ones((200000,20))*noise_good
     if theta_phase=='mixed':
         t0,t1=0.5/theta_frequency,1/theta_frequency
         i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1
@@ -263,6 +300,7 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     noise=TimedArray(noise_array,dt=defaultclock.dt)
     
     prefs.codegen.target = 'cython' #cython=faster, numpy = default python
+    # prefs.codegen.target = 'numpy' #cython=faster, numpy = default python
     
     taurinp=0.1*ms
     taudinp=0.5*ms
@@ -284,7 +322,7 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     
     net.run(runtime,report='text',report_period=300*second)
 
-    R5,R6,V_RS,V_SOM,inpmon=all_monitors
+    R5,R6,RVIP,V_RS,V_SOM,V_VIP,inpmon=all_monitors
     
     RS=all_neurons[0]
     # print(RS.ginp_RS)
@@ -301,11 +339,12 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
         figure()
         plot(R5.t,R5.i+0,'r.',label='RS cells')
         plot(R6.t,R6.i+20,'g.',label='SOM cells')
+        plot(RVIP.t,RVIP.i+40,'k.',label='VIP cells')
         xlim(0,runtime/second)
     #    legend(loc='upper left')
         xlabel('Time (s)')
         ylabel('Neuron index')
-        ylim(-1,41)
+        ylim(-1,61)
         
         N_RS_spikes=zeros_ones_monitor(R5,defaultclock.dt,runtime)
         f, t, Sxx = signal.spectrogram(array(N_RS_spikes), 100000*Hz,nperseg=20000,noverlap=15000)
@@ -349,8 +388,7 @@ if __name__=='__main__':
     Vlow=-80*mV
     ginp=0* msiemens * cm **-2
     
-    N_RS_gran,N_SOM=20,20
-    t_SI, t_FS = 20*ms,5*ms
+    N_RS,N_SOM=20,20
     all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS_gran,N_SOM,runtime)    
     
     net=Network()
@@ -370,7 +408,7 @@ if __name__=='__main__':
     
     net.run(runtime,report='text',report_period=300*second)
 
-    R5,R6,V_RS,V_SOM,inpmon=all_monitors
+    R5,R6,RVIP,V_RS,V_SOM,V_VIP,inpmon=all_monitors
     
     figure()
     plot(inpmon.t,inpmon.Iinp2[0])
@@ -379,8 +417,9 @@ if __name__=='__main__':
     tight_layout()
     
     figure()
-    plot(R5.t,R5.i+20,'r.',label='RS')
-    plot(R6.t,R6.i+40,'g.',label='SOM')
+    plot(R5.t,R5.i+0,'r.',label='RS')
+    plot(R6.t,R6.i+20,'g.',label='SOM')
+    plot(RVIP.t,RVIP.i+40,'k.',label='VIP')
     xlim(0,runtime/second)
 #    legend(loc='upper left')
     xlabel('Time (s)')

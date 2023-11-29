@@ -11,7 +11,7 @@ from brian2 import *
 defaultclock.dt = 0.01*ms
 
 eq_VIP='''
-dV/dt = (1/Cm)*(-INa-IK-ID-IL-Isyn+Irand+Iapp-Iapp2) : volt
+dV/dt = (1/Cm)*(-INa-IK-ID-IL-Isyn+Iapp-Ihipp) : volt
     
 INa=gna*h*(minf*minf*minf)*(V-Ena) : amp * meter ** -2
     minf = 1/(1+exp(-(V+24*mV)/11.5/mV)) : 1
@@ -31,21 +31,18 @@ ID=gd*a*a*a*b*(V-Ek) : amp * meter ** -2
     binfD =  1/(1 + exp((V+70*mV)/6/mV)) : 1
 
 IL=gl*(V-El) : amp * meter ** -2
-Irand=0*4*sqrt(0.05)*rand()*mamp * cmeter ** -2 : amp * meter ** -2 (constant over dt)
+
 Iapp : amp * meter ** -2 
 Isyn=IsynRS_FEF_VM+IsynSI_FEF_VM+IsynSI2_FEF_VM+IsynRS_FEF_V+IsynFS_FEF_V+Isyn_mdPul : amp * meter ** -2
-Iapp2=sinp*ginpVIP*(V-Vrev_inp) : amp * meter ** -2
-    dsinp/dt=-sinp/taudinp2 + (1-sinp)/taurinp2*0.5*(1+tanh(Vinp/10/mV)) : 1
-    dVinp/dt=1/tauinp2*(Vlow-Vinp) : volt
-    ginpVIP = ginp_VIP_good* int(sin(2*pi*t*4*Hz)>0) + ginp_VIP_bad* int(sin(2*pi*t*4*Hz)<=0) : siemens * meter **-2
-    ginp_VIP_good : siemens * meter **-2
-    ginp_VIP_bad : siemens * meter **-2
+
 IsynRS_FEF_VM : amp * meter ** -2
 IsynSI_FEF_VM : amp * meter ** -2
 IsynSI2_FEF_VM : amp * meter ** -2
 IsynRS_FEF_V : amp * meter ** -2
 IsynFS_FEF_V : amp * meter ** -2
 Isyn_mdPul : amp * meter ** -2
+Ihipp = Ihipp_amp* 0.5*(1+sin(2*pi*t*8*Hz)) : amp * meter **-2 
+Ihipp_amp : amp * meter **-2
 '''
 
 
@@ -77,11 +74,13 @@ if __name__=='__main__' :
     taudinp2=5*ms
     tauinp2=taudinp2
     
-    VIP=NeuronGroup(100,eq_VIP,threshold='V>0*mvolt',refractory=3*ms,method='rk4')
+    VIP=NeuronGroup(10,eq_VIP,threshold='V>0*mvolt',refractory=3*ms,method='rk4')
     VIP.V = '-63*mvolt'
-    VIP.Iapp='i/100 *50 * uA * cmeter ** -2'
-#    VIP.Iapp='0 * uA * cmeter ** -2'
+    # VIP.Iapp='i/100 *50 * uA * cmeter ** -2'
+    VIP.Iapp='-0.1 * uA * cmeter ** -2'
     VIP.Vinp=Vlow
+    
+    VIP.Ihipp_amp='-20 * uA * cmeter ** -2'
     
 #    G_topdown3 = SpikeGeneratorGroup(1, array([0,0]), array([0.25,0.75])*second)
 #    topdown_in3=Synapses(G_topdown3,VIP,on_pre='Vinp=Vhigh')
@@ -105,12 +104,12 @@ if __name__=='__main__' :
     ylabel('Membrane potential (V)')
     title('VIP cell')
     
-    print(R1.count[0])
+    # print(R1.count[0])
     
-    figure()
-    plot((VIP.Iapp/ (uA * cmeter ** -2)),R1.count/10)
-    xlabel('I (uA * cmeter ** -2)')
-    ylabel('f (Hz)')
+    # figure()
+    # plot((VIP.Iapp/ (uA * cmeter ** -2)),R1.count/10)
+    # xlabel('I (uA * cmeter ** -2)')
+    # ylabel('f (Hz)')
     
 #    figure()
 #    plot(I1.t/second,I1.IL[0],label='L')

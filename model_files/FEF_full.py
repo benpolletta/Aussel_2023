@@ -12,22 +12,14 @@ Created on Wed Feb  5 11:24:49 2020
 from brian2 import *
 
 from scipy import signal
+from model_files.cells.RS_FEF import *
+from model_files.cells.RS_FEFdec import *
+from model_files.cells.FS_FEF import *
+from model_files.cells.SI_FEF import *
+from model_files.cells.VIP_FEF import *
 
-try:
-    from cells.RS_FEF import *
-    from cells.FS_FEF import *
-    from cells.SI_FEF import *
-    from cells.VIP_FEF import *
-    from FEF_visuomotor_module import *
-    from FEF_visual_module import *
-except:
-    from model_files.cells.RS_FEF import *
-    from model_files.cells.FS_FEF import *
-    from model_files.cells.SI_FEF import *
-    from model_files.cells.VIP_FEF import *
-    from model_files.FEF_visuomotor_module import *
-    from model_files.FEF_visual_module import *
-
+from model_files.FEF_visuomotor_module import *
+from model_files.FEF_visual_module import *
 
 runtime=1*second
     
@@ -64,23 +56,25 @@ def generate_spike_timing(N,f,start_time,end_time=runtime):
 
 
 
-def create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,target_on,runtime,target_time):
+def create_FEF_full2(modeled_screen_location,N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,target_on,runtime,target_time):
     
     #create each functional group of neurons individually
-    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(t_SI,t_FS,theta_phase,N_RS_vm,N_SI_vm,runtime)
+    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phase,N_RS_vm,N_SI_vm,runtime)
     RS_vm=all_neurons_vm[0]
     
     all_neurons_v,all_synapses_v,all_monitors_v=generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS_vis,N_RS_vis,runtime,target_on,target_time)
     RS_vis=all_neurons_v[0]
     VIP,SI,Poisson_target=all_neurons_v[2],all_neurons_v[3],all_neurons_v[5]
     
-    RS_mot=NeuronGroup(N_RS_mot,eq_RS_FEF,threshold='V>-20*mvolt',refractory=3*ms,method='rk4')
+    RS_mot=NeuronGroup(N_RS_mot,eq_RS_FEFdec,threshold='V>-20*mvolt',refractory=3*ms,method='rk4')
     RS_mot.V = '-70*mvolt+10*rand()*mvolt'
     RS_mot.h = '0+0.05*rand()'
     RS_mot.m = '0+0.05*rand()'
     RS_mot.mAR = '0.035+0.025*rand()'
-#    RS_mot.J='50 * uA * cmeter ** -2'  
-    RS_mot.J='50 * uA * cmeter ** -2'  
+#    RS_mot.J='50 * uA * cmeter ** -2' 
+    RS_mot.Jbegin='50 * uA * cmeter ** -2'   
+    RS_mot.Jend='50 * uA * cmeter ** -2'  
+    RS_mot.noiseamp = 0 * uA * cmeter ** -2
     
     
 
@@ -147,9 +141,6 @@ if __name__=='__main__':
     print('Creating the network')
     N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm=[20]*5
     
-    t_SI=[20*ms]
-    t_FS=[5*ms]
-    
     theta_phase='mixed'
 #    theta_phase='good'
     target_on=True
@@ -160,7 +151,7 @@ if __name__=='__main__':
     net=Network()
     
 #    net,all_monitors=create_network(N_RS_vis,N_FS_vis,N_RS_mot,N_SI_mot,N_dSI_vm,N_RS_vm,N_gSI_vm,theta_phase,target_on,runtime)
-    all_neurons,all_synapses,all_monitors=create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,target_on,runtime,target_time)
+    all_neurons,all_synapses,all_monitors=create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,theta_phase,target_on,runtime,target_time)
     
     net.add(all_neurons)
     net.add(all_synapses)

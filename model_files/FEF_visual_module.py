@@ -10,16 +10,10 @@ Created on Wed Apr 29 08:58:41 2020
 from brian2 import *
 
 from scipy import signal
-try:
-    from cells.RS_FEF import *
-    from cells.FS_FEF import *
-    from cells.SI_FEF import *
-    from cells.VIP_FEF_vis import *
-except:
-    from model_files.cells.RS_FEF import *
-    from model_files.cells.FS_FEF import *
-    from model_files.cells.SI_FEF import *
-    from model_files.cells.VIP_FEF_vis import *
+from model_files.cells.RS_FEF import *
+from model_files.cells.FS_FEF import *
+from model_files.cells.SI_FEF import *
+from model_files.cells.VIP_FEF_vis import *
 
 def save_raster(name,raster_i,raster_t,path):
     raster_file=open(path+'/raster_'+name+'_i.txt','w')
@@ -152,10 +146,9 @@ def generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS,N_RS,runtime,target_on,ta
     S_in_target_VIP.connect(j='i')
     S_in_target_SI=Synapses(Poisson_target,SI,on_pre='Vinp2=Vhigh')
     S_in_target_SI.connect(j='i')
-    V4_multiplier = 1
-    SI.ginp_SI2=V4_multiplier*2.5* msiemens * cm **-2
-    RS.ginp_RS2=V4_multiplier*2.5* msiemens * cm **-2
-    VIP.ginp_VIP2=V4_multiplier*3* msiemens * cm **-2
+    SI.ginp_SI2=2.5* msiemens * cm **-2
+    RS.ginp_RS2=2.5* msiemens * cm **-2
+    VIP.ginp_VIP2=3* msiemens * cm **-2
 
     
     #Define monitors and run network :
@@ -173,7 +166,7 @@ def generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS,N_RS,runtime,target_on,ta
 def sim_FEF_v_alone(simu,path,plot_raster=False):
     start_scope()   
     
-    target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7]
+    modeled_screen_location,target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
     prefs.codegen.target = 'numpy'
     defaultclock.dt = 0.01*ms
     

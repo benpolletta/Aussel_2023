@@ -39,12 +39,14 @@ def zeros_ones_monitor(spikemon,record_dt,runtime):
         zeros_ones[int(time/record_dt)]+=1
     return zeros_ones
 
-def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
+def generate_deepSI_and_gran_layers(theta_phase,poor_phase_jitter,runtime):
     
     N_RS,N_SOM=[20]*2
     
     t_SI=[20*ms]
     t_FS=[5*ms]
+    
+    j_rsfefvm=0*mA*cmeter**-2
     
     theta_freq=4*Hz
     
@@ -109,14 +111,15 @@ def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
     #From SOM cells,
     S_SOMRS=generate_syn(SOM,RS,'IsynSI_FEF_VM','',0.8*msiemens * cm **-2,0.25*ms,t_SI,-80*mV) #0.35
     
-    def generate_spike_timing(N,f,start_time,end_time=runtime):
+    def generate_spike_timing(N,f,start_time,end_time=runtime,jitter=0.001):
         list_time_and_i=[]
         for i in range(N):
-            list_time=[(start_time,i)]
-            next_spike=list_time[-1][0]+(1+0.01*rand())/f
+            first_spike = max(start_time+(jitter*(rand()-.5))/f, 0)
+            list_time=[(first_spike, i)]
+            next_spike=list_time[-1][0]+(1+jitter*(rand()-.5))/f
             while next_spike<end_time:
                 list_time.append((next_spike,i))
-                next_spike=list_time[-1][0]+(1+0.01*rand())/f
+                next_spike=list_time[-1][0]+(1+jitter*(rand()-.5))/f
             list_time_and_i+=list_time
         return array(list_time_and_i)
 
@@ -133,15 +136,21 @@ def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
     spikes_mdPul=generate_spike_timing(N_RS,fmdPul,0*ms,end_time=3000*ms)
     #Theta=4Hz
     theta_frequency=theta_freq
+    theta_period = 1/theta_frequency
     if theta_phase=='mixed':
         t0=0*ms
         # t1=125*ms
         t1=0.5/theta_frequency
-        spikes_mdPul=generate_spike_timing(N_SOM,fmdPul,t0,end_time=t1)
-        while t0+1/theta_frequency<runtime:
-            t0,t1=t0+1/theta_frequency,t1+1/theta_frequency
-            spikes_mdPul=vstack((spikes_mdPul,generate_spike_timing(N_SOM,fmdPul,t0,end_time=t1)))
-            
+        t2=2/(13*Hz)
+        t3=theta_period
+        spikes_mdpul=generate_spike_timing(N_RS,13*Hz,t0,end_time=t1)
+        spikes_mdpul=vstack((spikes_mdpul,generate_spike_timing(N_RS,13*Hz,t2,end_time=t3-1/(13*Hz),jitter=poor_phase_jitter)))
+        while t0+theta_period<runtime:
+            t0,t1,t3=t0+theta_period,t1+theta_period,t3+theta_period
+            t2=t0+2/(13*Hz)
+            spikes_mdpul=vstack((spikes_mdpul,generate_spike_timing(N_RS,13*Hz,t0,end_time=t1)))
+            spikes_mdpul=vstack((spikes_mdpul,generate_spike_timing(N_RS,13*Hz,t2,end_time=t3-1/(13*Hz),jitter=poor_phase_jitter)))
+                          
     # print(spikes_mdPul[:,0:10])
     
     G_in_mdPul = SpikeGeneratorGroup(N_RS, spikes_mdPul[:,1], spikes_mdPul[:,0]*second)
@@ -149,9 +158,9 @@ def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
     S_in_mdPul=Synapses(G_in_mdPul,RS,on_pre='Vinp2=Vhigh')
     S_in_mdPul.connect(j='i')
     
-    Poisson_input = PoissonGroup(10*N_RS, 13/10*Hz)
-    tonic_mdPul = Synapses(Poisson_input,RS, on_pre='Vinp1=Vhigh')
-    tonic_mdPul.connect(j='i%10')
+    # Poisson_input = PoissonGroup(10*N_RS, 13/10*Hz)
+    # tonic_mdPul = Synapses(Poisson_input,RS, on_pre='Vinp1=Vhigh')
+    # tonic_mdPul.connect(j='i%10')
          
     
     #LIP input
@@ -189,14 +198,14 @@ def generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime):
     R5=SpikeMonitor(RS,record=True)
     R6=SpikeMonitor(SOM,record=True)
     
-    inpmon=StateMonitor(RS,['sinp2','ginp_RS2','sinp1','ginp_RS1'],record=True)
+    inpmon=StateMonitor(RS,['sinp2','ginp_RS2'],record=True)
     # inpmon=StateMonitor(RS,'Isyn',record=True)
     
     V_RS=StateMonitor(RS,'V',record=True)
     V_SOM=StateMonitor(SOM,'V',record=True)
     
     all_neurons=RS,SOM,G_in_mdPul,G_in_LIP
-    all_synapses=S_RSRS,S_RSSOM,S_SOMRS,S_in_mdPul,tonic_mdPul,S_LIP_in,S_LIP_in2
+    all_synapses=S_RSRS,S_RSSOM,S_SOMRS,S_in_mdPul,S_LIP_in,S_LIP_in2
     all_monitors=R5,R6,V_RS,V_SOM,inpmon
     
     return all_neurons,all_synapses,all_monitors
@@ -359,7 +368,7 @@ if __name__=='__main__':
     Vlow=-80*mV
     ginp=0* msiemens * cm **-2
     
-    j_rsfefvm='45*uA*cmeter**-2'
+    j_rsfefvm=1.0#'45*uA*cmeter**-2'
     
     all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(theta_phase,j_rsfefvm,runtime)    
     

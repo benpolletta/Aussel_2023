@@ -78,8 +78,8 @@ def generate_syn(source,target,syntype,connection_pattern,g_i,taur_i,taud_i,V_i)
     return S
 
 def FEF_and_LIP(simu,path,plot_raster=False):
-    prefs.codegen.target = 'numpy' 
-    target_time,simu_number,t_SI,t_FS,theta_phase,gPul,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
+    prefs.codegen.target = 'cython' 
+    target_time,simu_number,t_SI,t_FS,theta_phase,poor_phase_jitter,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
     
     # if not plot_raster :
     #     new_path=path+"/results_"
@@ -90,6 +90,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     start_scope()
     close('all')
     
+    gPul = 5
     theta_freq=4*Hz
     
     Vrev_inp=0*mV
@@ -132,18 +133,18 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     syn_cond=all_syn_cond[0]
     J=all_J[0]
     
-    j_tonic = 0 * uA * cmeter ** -2
+    #j_tonic = 0 * uA * cmeter ** -2
     
     print('Network setup')
     
     net=Network()
     
-    all_neurons_LIP, all_synapses_LIP, all_gap_junctions_LIP, all_monitors_LIP=make_full_network(syn_cond,j_tonic,gPul,t_SI,t_FS,theta_phase,theta_freq)
+    all_neurons_LIP, all_synapses_LIP, all_gap_junctions_LIP, all_monitors_LIP=make_full_network(syn_cond,poor_phase_jitter,gPul,t_SI,t_FS,theta_phase,theta_freq)
     V1,V2,V3,R1,R2,R3,I1,I2,I3,V4,R4,I4s,I4a,I4ad,I4bd,R5,R6,R7,V5,V6,V7=all_monitors_LIP
     RS_sup_LIP,IB_LIP,SI_deep_LIP=all_neurons_LIP[0],all_neurons_LIP[5],all_neurons_LIP[9]
     RS_gran_LIP,FS_gran_LIP=all_neurons_LIP[7],all_neurons_LIP[8]
     
-    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(theta_phase,j_tonic,target_on,runtime,target_time)
+    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(theta_phase,poor_phase_jitter,target_on,runtime,target_time)
     R8,R9,V_RS,V_SOM,inp_mon_FEF,R11,R12,R13,R14,mon_RS=all_monitors_FEF
     RSvm_FEF,SIvm_FEF,RSv_FEF,SIv_FEF,VIPv_FEF=all_neurons_FEF[0],all_neurons_FEF[1],all_neurons_FEF[4],all_neurons_FEF[7],all_neurons_FEF[6]
     
@@ -172,7 +173,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         # RS_gran_LIP.ginp_RS_bad=gPul* msiemens * cm **-2
         # FS_gran_LIP.ginp_FS_bad=gPul* msiemens * cm **-2
         RSvm_FEF.ginp_RS2_bad=gPul* msiemens * cm **-2
-        RSvm_FEF.ginp_RS1 = ((3*5/4)* msiemens * cm ** -2) - (.75*gPul * msiemens * cm **--2)
+        #RSvm_FEF.ginp_RS1 = ((3*5/4)* msiemens * cm ** -2) - (.75*gPul * msiemens * cm **--2)
 
     
     net.add(all_neurons_FEF)
@@ -390,7 +391,7 @@ if __name__=='__main__':
     if os.name == 'nt':
         path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
     else :
-        path=path+"/gPulv2_"+sys.argv[2]+"mScm-2/results_"+sys.argv[1]#datetime.datetime.now())
+        path=path+"/jitter_"+sys.argv[2]+"/results_"+sys.argv[1]#datetime.datetime.now())
     
     if not os.path.exists(path):
         os.makedirs(path)
@@ -430,7 +431,7 @@ if __name__=='__main__':
     
     #Other parameters (fixed across all simulations):
     theta_phase='mixed' #theta phases to simulate (good, bad or mixed)
-    gPul=float(sys.argv[2]) #*uA*cmeter**-2
+    jitter=float(sys.argv[2]) #*uA*cmeter**-2
     gLIP_FEFv=0.015*msiemens * cm **-2 #LIP->FEF visual module synapse conductance :
     target_presentation='True' #'True' if target is presented, 'False' otherwise
     runtime=2*second #simulation duration
@@ -443,7 +444,7 @@ if __name__=='__main__':
         
         
     liste_simus=[[i,j,k] for i in liste_simus for j in liste_t_SOM for k in liste_t_FS]
-    liste_simus=[[liste_simus[i][0],i,liste_simus[i][1],liste_simus[i][2],theta_phase,gPul,gLIP_FEFv,target_presentation,runtime] for i in range(len(liste_simus))]
+    liste_simus=[[liste_simus[i][0],i,liste_simus[i][1],liste_simus[i][2],theta_phase,jitter,gLIP_FEFv,target_presentation,runtime] for i in range(len(liste_simus))]
     
     
     simu = liste_simus[int(sys.argv[1])]

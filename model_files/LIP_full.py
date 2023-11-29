@@ -55,7 +55,7 @@ def save_raster(name,raster_i,raster_t,path):
     raster_file.close()
     return
     
-def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):  
+def make_full_network(syn_cond,poor_phase_jitter,thal,t_SI,t_FS,theta_phase,theta_freq):  
     
     NN=1 #multiplicative factor on the number of neurons
     N_RS,N_FS,N_SI,N_IB= NN*80,NN*20,NN*20,NN*20 #Number of neurons of RE, TC, and HTC type
@@ -164,14 +164,15 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
     S_SIdeepFSgran=generate_syn(SI_deep,FS_gran,'IsynSI_LIP_deep','',gSIdFSg,0.25*ms,t_SI,-80*mV)
     
     
-    def generate_spike_timing(N,f,start_time,end_time=runtime):
+    def generate_spike_timing(N,f,start_time,end_time=runtime,jitter=0.001):
         list_time_and_i=[]
         for i in range(N):
-            list_time=[(start_time,i)]
-            next_spike=list_time[-1][0]+(1+0.001*rand())/f
+            first_spike = max(start_time+(jitter*(rand()-.5))/f, 0)
+            list_time=[(first_spike, i)]
+            next_spike=list_time[-1][0]+(1+jitter*(rand()-.5))/f
             while next_spike<end_time:
                 list_time.append((next_spike,i))
-                next_spike=list_time[-1][0]+(1+0.001*rand())/f
+                next_spike=list_time[-1][0]+(1+jitter*(rand()-.5))/f
             list_time_and_i+=list_time
         return array(list_time_and_i)
     
@@ -199,19 +200,26 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
     FS_gran.ginp_FS_good=mdpul_input_amplitude/2
     E_gran.ginp_RS_bad=mdpul_input_amplitude
     FS_gran.ginp_FS_bad=mdpul_input_amplitude
-    E_gran.ginp_RS1 = 3*(5*mS*cm**-2-mdpul_input_amplitude)/(4*10)
-    FS_gran.ginp_FS1 = 3*(5*mS*cm**-2-mdpul_input_amplitude)/(4*10)
+    # E_gran.ginp_RS1 = 3*(5*mS*cm**-2-mdpul_input_amplitude)/(4*10)
+    # FS_gran.ginp_FS1 = 3*(5*mS*cm**-2-mdpul_input_amplitude)/(4*10)
     
     inputs_mdpul=generate_spike_timing(N_FS,13*Hz,0*ms,end_time=10000*ms)
 
+    print(poor_phase_jitter)
+    poor_phase_jitter = float(poor_phase_jitter)
     if theta_phase=='mixed':
         theta_period=1/theta_freq
         t0=0*ms
         t1=theta_period/2
+        t2=2/(13*Hz)
+        t3=theta_period
         inputs_mdpul=generate_spike_timing(N_FS,13*Hz,t0,end_time=t1)
+        inputs_mdpul=vstack((inputs_mdpul,generate_spike_timing(N_FS,13*Hz,t2,end_time=t3-1/(13*Hz),jitter=poor_phase_jitter)))
         while t0+theta_period<runtime:
-            t0,t1=t0+theta_period,t1+theta_period
+            t0,t1,t3=t0+theta_period,t1+theta_period,t3+theta_period
+            t2=t0+2/(13*Hz)
             inputs_mdpul=vstack((inputs_mdpul,generate_spike_timing(N_FS,13*Hz,t0,end_time=t1)))
+            inputs_mdpul=vstack((inputs_mdpul,generate_spike_timing(N_FS,13*Hz,t2,end_time=t3-1/(13*Hz),jitter=poor_phase_jitter)))
                           
         
     mdPul_input = SpikeGeneratorGroup(N_FS, inputs_mdpul[:,1], inputs_mdpul[:,0]*second)
@@ -221,16 +229,6 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
     mdPul_input2 = SpikeGeneratorGroup(N_FS, inputs_mdpul[:,1], inputs_mdpul[:,0]*second)
     bottomup_in2 = Synapses(mdPul_input2,E_gran, on_pre='Vinp=Vhigh')
     bottomup_in2.connect(j='i')
-    
-    inputs_mdpul_tonic=generate_spike_timing(N_FS,13*Hz,0*ms,end_time=10000*ms)
-    
-    mdPul_tonic_input = SpikeGeneratorGroup(N_FS, inputs_mdpul_tonic[:, 1], inputs_mdpul_tonic[:, 0]*second)
-    bottomup_in3 = Synapses(mdPul_tonic_input,FS_gran, on_pre='Vinp1=Vhigh')
-    bottomup_in3.connect(j='i%10')
-    
-    mdPul_tonic_input2 = SpikeGeneratorGroup(N_FS, inputs_mdpul_tonic[:, 1], inputs_mdpul_tonic[:, 0]*second)
-    bottomup_in4 = Synapses(mdPul_tonic_input2,E_gran, on_pre='Vinp1=Vhigh')
-    bottomup_in4.connect(j='i%10')
     
     #defining input to the deep layer (from FEFvm)
     if theta_phase=='good':
@@ -246,9 +244,9 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
         topdown_in3.connect(j='i')
     
     
-    g_inputs=[G_topdown2,G_topdown3,G_lateral,G_lateral2,mdPul_input,mdPul_input2,Poisson_input,Poisson_input2]
+    g_inputs=[G_topdown2,G_topdown3,G_lateral,G_lateral2,mdPul_input,mdPul_input2]#,Poisson_input,Poisson_input2]
     g_inputs=[y for y in g_inputs if y]
-    syn_inputs=[topdown_in2,topdown_in3,lateral_in,lateral_in2,bottomup_in,bottomup_in2,bottomup_in3,bottomup_in4]
+    syn_inputs=[topdown_in2,topdown_in3,lateral_in,lateral_in2,bottomup_in,bottomup_in2]#,bottomup_in3,bottomup_in4]
     syn_inputs=[y for y in syn_inputs if y]
     
 
@@ -258,7 +256,7 @@ def make_full_network(syn_cond,J_tonic,thal,t_SI,t_FS,theta_phase,theta_freq):
     R6=SpikeMonitor(FS_gran,record=True)
     R7=SpikeMonitor(SI_deep,record=True)
     
-    V5=StateMonitor(E_gran,['V','sinp','sinp1','ginp_RS','ginp_RS1'],record=True)
+    V5=StateMonitor(E_gran,['V','sinp','ginp_RS'],record=True)
     V6=StateMonitor(FS_gran,'V',record=True)
     V7=StateMonitor(SI_deep,'V',record=True)
     
@@ -317,8 +315,10 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
     
     net = Network(collect())
     
+    poor_phase_jitter = 1.0
+    
     print('Network setup')
-    all_neurons, all_synapses, all_gap_junctions, all_monitors=make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,theta_freq)
+    all_neurons, all_synapses, all_gap_junctions, all_monitors=make_full_network(syn_cond,poor_phase_jitter,thal,t_SI,t_FS,theta_phase,theta_freq)
     V1,V2,V3,R1,R2,R3,I1,I2,I3,V4,R4,I4s,I4a,I4ad,I4bd,R5,R6,R7,V5,V6,V7=all_monitors
     
     
@@ -328,7 +328,7 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
 #    net.add(all_monitors)
     net.add((V1,R1,R2,R3,R4,R5,R6,R7))
     
-    Inpmon=StateMonitor(all_neurons[7],['sinp','ginp_RS','sinp1','ginp_RS1'],record=[0])
+    Inpmon=StateMonitor(all_neurons[7],['sinp','ginp_RS'],record=[0])
     net.add(Inpmon)
     
     # taurinp=0.1*ms
@@ -394,15 +394,15 @@ def run_one_LIP_simulation(simu,path,plot_raster=False):
         xlabel('Time (s)')
         
         
-        fig, axes = subplots(nrows=3, ncols=1)
-        axes[0].plot(Inpmon.t,Inpmon.sinp1[0])
-        ylabel('sinp')
-        ylabel('Pulvinar input (Poisson)')
-        axes[1].plot(Inpmon.t,Inpmon.ginp_RS1[0])
-        ylabel('ginp')
-        axes[2].plot(Inpmon.t,Inpmon.sinp1[0]*Inpmon.ginp_RS1[0])
-        ylabel('s*g')
-        xlabel('Time (s)')
+        # fig, axes = subplots(nrows=3, ncols=1)
+        # axes[0].plot(Inpmon.t,Inpmon.sinp1[0])
+        # ylabel('sinp')
+        # ylabel('Pulvinar input (Poisson)')
+        # axes[1].plot(Inpmon.t,Inpmon.ginp_RS1[0])
+        # ylabel('ginp')
+        # axes[2].plot(Inpmon.t,Inpmon.sinp1[0]*Inpmon.ginp_RS1[0])
+        # ylabel('s*g')
+        # xlabel('Time (s)')
     
 
     save_raster('LIP_RS',R1.i,R1.t,new_path)
@@ -441,13 +441,15 @@ def run_one_simulation(simu,path,index_var):
     NN=1 #multiplicative factor on the number of neurons
     N_RS,N_FS,N_SI,N_IB= NN*80,NN*20,NN*20,NN*20 #Number of neurons of RE, TC, and HTC type
     
-    syn_cond,J,thal,theta_phase,theta_freq,index=simu
+    syn_cond,poor_phase_jitter,thal,theta_phase,theta_freq,index=simu
     print('Simulation '+str(index))
     
     net = Network(collect())
     
+    poor_phase_jitter = 1.0
+    
     print('Network setup')
-    all_neurons, all_synapses, all_gap_junctions, all_monitors=make_full_network(syn_cond,J,thal,theta_phase,theta_freq)
+    all_neurons, all_synapses, all_gap_junctions, all_monitors=make_full_network(syn_cond,poor_phase_jitter,thal,theta_phase,theta_freq)
     V1,V2,V3,R1,R2,R3,I1,I2,I3,V4,R4,I4s,I4a,I4ad,I4bd,R5,R6,R7,V5,V6,V7,inpmon,inpIBmon=all_monitors
     
     
@@ -563,7 +565,7 @@ def run_one_simulation(simu,path,index_var):
 if __name__=='__main__':
         
     runtime=2*second
-    all_theta_phase=['good'] 
+    all_theta_phase=['mixed'] 
     all_theta_freq=[4*Hz]
     all_t_SOM=[20*msecond]
     all_t_FS=[5*msecond]

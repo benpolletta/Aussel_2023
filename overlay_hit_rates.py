@@ -30,11 +30,11 @@ order+=[14,43]
 
 liste_target_time=[liste_target_time[i] for i in order]
 
-prefix = 'gPul' # 
-suffix = 'mScm-2' # 
-j_list = [1, 2, 3, 4, 5] #
-description = 'mdPul Input Conductance'
-short_description = 'mdPul Input'
+prefix = 'jitter' #'gPul' # 
+suffix = '' #'mScm-2' # 
+j_list = [0.75, 1.0] #[1, 2, 3, 4, 5] #
+description = 'Jitter During Poor Theta Phase' #'mdPul Input Conductance'
+short_description = 'jitter' # 'mdPul Input'
 
 # prefix = 'gPul_offset' # 
 # suffix = 'mScm-2' # 

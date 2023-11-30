@@ -95,6 +95,7 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
     SI_deep.J='35* uA * cmeter ** -2' #article SI=50, code=35, Mark = 45
     
  
+    mdpul_input_amplitude = thal
     if theta_phase=='bad':
         SI_deep.ginp_SI=0* msiemens * cm **-2 #FEF input to deep SOM cells is zero
         mdpul_input_amplitude=0* msiemens * cm **-2 #mdPul input to granular layer is zero

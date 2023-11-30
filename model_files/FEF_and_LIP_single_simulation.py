@@ -214,6 +214,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     noise_good=0* uA * cmeter ** -2
     noise_level=0* uA * cmeter ** -2
     # noise_level=-30* uA * cmeter ** -2
+    noise_array=ones((200000,20))* noise_level
     if theta_phase=='mixed':
         t0,t1=125*ms,250*ms
         i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1
@@ -226,8 +227,8 @@ def FEF_and_LIP(simu,path,plot_raster=False):
             
     elif theta_phase=='good':
         noise_array=ones((200000,20))* noise_good
-    elif theta_phase=='bad':
-        noise_array=ones((200000,20))* noise_level
+    # elif theta_phase=='bad':
+    #     noise_array=ones((200000,20))* noise_level
 #    print(noise_array)
     noise=TimedArray(noise_array,dt=defaultclock.dt)
     
@@ -378,6 +379,6 @@ if __name__=='__main__':
 
     target_time=850*msecond#[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
  
-    simu = [target_time, t_SI, t_FS, theta_phase, g_LIP_FEF_v, target_on, runtime]
+    simu = ["Cued location", target_time, 3000, t_SI, t_FS, theta_phase, g_LIP_FEF_v, target_on, runtime]
      
     FEF_and_LIP(simu,path,plot_raster=True)

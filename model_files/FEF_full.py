@@ -18,6 +18,7 @@ try:
     from cells.FS_FEF import *
     from cells.SI_FEF import *
     from cells.VIP_FEF import *
+    from cells.RS_FEFdec import *
     from FEF_visuomotor_module import *
     from FEF_visual_module import *
 except:
@@ -25,6 +26,7 @@ except:
     from model_files.cells.FS_FEF import *
     from model_files.cells.SI_FEF import *
     from model_files.cells.VIP_FEF import *
+    from model_files.cells.RS_FEFdec import *
     from model_files.FEF_visuomotor_module import *
     from model_files.FEF_visual_module import *
 

@@ -76,6 +76,7 @@ def generate_FEFvm_cued_from_raster(file_t,file_i):
 
 def generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
     
+    LIP_input = 5*msiemens*cm**-2
     if theta_phase=='bad':
         LIP_input=3* msiemens * cm **-2
         
@@ -211,7 +212,10 @@ def generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phas
     
 
     #lateral inhibition inputs
-    spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster("model_files/fefvm/raster_FEF SI2 vm_t.txt", "model_files/fefvm/raster_FEF SI2 vm_i.txt")
+    try:
+        spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster("fefvm/raster_FEF SI2 vm_t.txt", "fefvm/raster_FEF SI2 vm_i.txt")
+    except:
+        spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster("model_files/fefvm/raster_FEF SI2 vm_t.txt", "model_files/fefvm/raster_FEF SI2 vm_i.txt")
     
     if modeled_screen_location=='Same object location (uncued 1)' or modeled_screen_location=='Different object location (uncued 2)':
         S_in_FEFvm_RS=generate_syn(G_in_FEFvm,RS,'Isyn_FEF_VM_cued','',0.2*msiemens * cm **-2,0.25*ms,t_SI,-80*mV)

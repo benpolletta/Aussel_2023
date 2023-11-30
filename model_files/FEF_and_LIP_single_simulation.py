@@ -17,7 +17,6 @@ try:
 except:
     from model_files.LIP_full import *
     from model_files.FEF_full import *
-        
 
 from itertools import *
 from joblib import Parallel, delayed
@@ -60,7 +59,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     modeled_screen_location,target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
     
     if not plot_raster :
-        new_path=path+"/results_"+str(N_simu)
+        new_path=path+"/results_"
         os.mkdir(new_path)
     else :
         new_path=path

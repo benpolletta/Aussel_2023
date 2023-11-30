@@ -56,7 +56,7 @@ from scipy.stats import spearmanr
 # res_folder='poisson2ms'
 
 theta_freq = 4
-res_folder = "jRSFEFvm_27uAcm-2" #'theta_'+str(theta_freq)+'Hz'
+res_folder = "Jbegin_15_Jend_85" #"jRSFEFvm_27uAcm-2" #'theta_'+str(theta_freq)+'Hz'
 theta_period = 1000/theta_freq
 
 num_theta_bins = 10

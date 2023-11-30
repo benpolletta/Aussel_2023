@@ -358,7 +358,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         
 #        show()
     
- #   clear_cache('cython')
+#    clear_cache('cython')
 
 
 if __name__=='__main__':

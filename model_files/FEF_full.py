@@ -66,7 +66,10 @@ def generate_spike_timing(N,f,start_time,end_time=runtime):
 
 
 
-def create_FEF_full2(modeled_screen_location,N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,t_SI,t_FS,theta_phase,target_on,runtime,target_time):
+def create_FEF_full2(modeled_screen_location,Jbegin,Jend,theta_phase,target_on,runtime,target_time):
+    
+    N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm=[20]*5
+    t_SI,t_FS=20*ms,5*ms
     
     #create each functional group of neurons individually
     all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phase,N_RS_vm,N_SI_vm,runtime)
@@ -82,8 +85,8 @@ def create_FEF_full2(modeled_screen_location,N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,
     RS_mot.m = '0+0.05*rand()'
     RS_mot.mAR = '0.035+0.025*rand()'
 #    RS_mot.J='50 * uA * cmeter ** -2' 
-    RS_mot.Jbegin='50 * uA * cmeter ** -2'   
-    RS_mot.Jend='50 * uA * cmeter ** -2'  
+    RS_mot.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
+    RS_mot.Jend=Jend #'50 * uA * cmeter ** -2'  
     RS_mot.noiseamp = 0 * uA * cmeter ** -2
     
     
@@ -161,7 +164,7 @@ if __name__=='__main__':
     net=Network()
     
 #    net,all_monitors=create_network(N_RS_vis,N_FS_vis,N_RS_mot,N_SI_mot,N_dSI_vm,N_RS_vm,N_gSI_vm,theta_phase,target_on,runtime)
-    all_neurons,all_synapses,all_monitors=create_FEF_full2(N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm,theta_phase,target_on,runtime,target_time)
+    all_neurons,all_synapses,all_monitors=create_FEF_full2(Jbegin,Jend,theta_phase,target_on,runtime,target_time)
     
     net.add(all_neurons)
     net.add(all_synapses)

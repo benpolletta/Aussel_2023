@@ -24,4 +24,4 @@ git checkout cued_vs_uncued
 
 SIM_INDEX=$(( $SGE_TASK_ID - 1 ))
 
-python FEF_and_LIP_no_cache.py $SIM_INDEX $1 $2
+python FEF_and_LIP_argument.py $SIM_INDEX $1 $2

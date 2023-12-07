@@ -32,8 +32,11 @@ def save_raster(name,raster_i,raster_t,path):
     raster_file.close()
     return
 
-def generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS,N_RS,runtime,target_on,target_time):
+def generate_visual_neurons(simu_dict):
     #print(target_on, theta_phase)
+    N_RS, N_FS = 20, 20
+    for key in simu_dict:
+        globals()[key] = simu_dict[key]
         
     prefs.codegen.target = 'numpy'
     

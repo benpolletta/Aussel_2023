@@ -74,7 +74,10 @@ def generate_FEFvm_cued_from_raster(file_t,file_i):
     FEFvm_cued_syn.connect(j='i')
     return FEFvm_cued_spikes,FEFvm_cued,FEFvm_cued_syn
 
-def generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime):
+def generate_deepSI_and_gran_layers(simu_dict):
+    N_RS, N_SOM=20, 20
+    for key in simu_dict:
+        globals()[key] = simu_dict[key]
     
     LIP_input = 5*msiemens*cm**-2
     if theta_phase=='bad':
@@ -153,7 +156,7 @@ def generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phas
 
     #Defining inputs
     #mdPul input
-    if modeled_screen_location=='Cued location' or modeled_screen_location=='Same object location (uncued 1)':
+    if location=='Cued location' or location=='Same object location (uncued 1)':
         RS.ginp_RS2_good=2.5* msiemens * cm **-2
         RS.ginp_RS2_bad=5* msiemens * cm **-2
 
@@ -217,7 +220,7 @@ def generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phas
     except:
         spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster("model_files/fefvm/raster_FEF SI2 vm_t.txt", "model_files/fefvm/raster_FEF SI2 vm_i.txt")
     
-    if modeled_screen_location=='Same object location (uncued 1)' or modeled_screen_location=='Different object location (uncued 2)':
+    if location=='Same object location (uncued 1)' or location=='Different object location (uncued 2)':
         S_in_FEFvm_RS=generate_syn(G_in_FEFvm,RS,'Isyn_FEF_VM_cued','',0.2*msiemens * cm **-2,0.25*ms,t_SI,-80*mV)
     else : 
         S_in_FEFvm_RS=generate_syn(G_in_FEFvm,RS,'Isyn_FEF_VM_cued','',0*msiemens * cm **-2,0.25*ms,t_SI,-80*mV)
@@ -243,7 +246,7 @@ def generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phas
 def sim_FEF_vm_alone(simu,path,plot_raster=False):
     start_scope()   
     
-    modeled_screen_location,target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
+    location,target_time,N_simu,t_SI,t_FS,theta_phase,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
     prefs.codegen.target = 'numpy'
     
     defaultclock.dt = 0.01*ms
@@ -267,7 +270,7 @@ def sim_FEF_vm_alone(simu,path,plot_raster=False):
     ginp=0* msiemens * cm **-2
     
     N_RS,N_SOM=20,20
-    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime)    
+    all_neurons,all_synapses,all_monitors=generate_deepSI_and_gran_layers(location,t_SI,t_FS,theta_phase,N_RS,N_SOM,runtime)    
     
     net=Network()
     net.add(all_neurons)

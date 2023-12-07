@@ -66,16 +66,18 @@ def generate_spike_timing(N,f,start_time,end_time=runtime):
 
 
 
-def create_FEF_full2(modeled_screen_location,Jbegin,Jend,theta_phase,target_on,runtime,target_time):
+def create_FEF_full2(simu_dict):
+    for key in simu_dict:
+        globals()[key] = simu_dict[key]
     
     N_RS_vis,N_FS_vis,N_RS_mot,N_RS_vm,N_SI_vm=[20]*5
-    t_SI,t_FS=20*ms,5*ms
+    #t_SI,t_FS=20*ms,5*ms
     
     #create each functional group of neurons individually
-    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(modeled_screen_location,t_SI,t_FS,theta_phase,N_RS_vm,N_SI_vm,runtime)
+    all_neurons_vm,all_synapses_vm,all_monitors_vm=generate_deepSI_and_gran_layers(simu_dict)
     RS_vm=all_neurons_vm[0]
     
-    all_neurons_v,all_synapses_v,all_monitors_v=generate_visual_neurons(t_SI,t_FS,theta_phase,N_FS_vis,N_RS_vis,runtime,target_on,target_time)
+    all_neurons_v,all_synapses_v,all_monitors_v=generate_visual_neurons(simu_dict)
     RS_vis=all_neurons_v[0]
     VIP,SI,Poisson_target=all_neurons_v[2],all_neurons_v[3],all_neurons_v[5]
     

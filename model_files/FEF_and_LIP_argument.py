@@ -66,9 +66,10 @@ def generate_syn(source,target,syntype,connection_pattern,g_i,taur_i,taud_i,V_i)
 
 def FEF_and_LIP(simu_dict):
     prefs.codegen.target = 'numpy' 
-    g_LIP_FEF_v = 0.015*msiemens * cm **-2
+    # g_LIP_FEF_v = 0.015*msiemens * cm **-2
     for key in simu_dict:
         globals()[key] = simu_dict[key]
+    print(globals())
     #location,target_time,N_simu,t_SI,t_FS,Jbegin,Jend,theta_phase,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8],simu[9]
     
     
@@ -111,8 +112,8 @@ def FEF_and_LIP(simu_dict):
     all_RSgRSs=[2*msiemens * cm **-2]
     all_RSgFSs=[0.1*msiemens * cm **-2]
     all_FSgRSs=[0.1* msiemens * cm **-2]
-    all_J_RSg=['15 * uA * cmeter ** -2']
-    all_J_FSg=['-5 * uA * cmeter ** -2']
+    all_J_RSg=JRsg #['15 * uA * cmeter ** -2']
+    all_J_FSg=JFSg #['-5 * uA * cmeter ** -2']
     all_thal=[10* msiemens * cm **-2]
     thal=all_thal[0]
     
@@ -130,7 +131,7 @@ def FEF_and_LIP(simu_dict):
     RS_sup_LIP,IB_LIP,SI_deep_LIP=all_neurons_LIP[0],all_neurons_LIP[5],all_neurons_LIP[9]
     RS_gran_LIP,FS_gran_LIP=all_neurons_LIP[7],all_neurons_LIP[8]
     
-    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(location,Jbegin,Jend,theta_phase,target_on,runtime,target_time)
+    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(simu_dict)
     R8,R9,V_RS,V_SOM,inp_mon_FEF,R11,R12,R13,R14,mon_RS=all_monitors_FEF
     RSvm_FEF,SIvm_FEF,RSv_FEF,SIv_FEF,VIPv_FEF=all_neurons_FEF[0],all_neurons_FEF[1],all_neurons_FEF[6],all_neurons_FEF[9],all_neurons_FEF[8]
     
@@ -193,11 +194,11 @@ def FEF_and_LIP(simu_dict):
     RSdec=all_neurons_FEF[-1]
     # RSdec.J='5 * uA * cmeter ** -2'
     
-    RSdec.noiseamp = 180 * uA * cmeter ** -2
+    RSdec.noiseamp = 90 * uA * cmeter ** -2
     if location=='Cued location':
         RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
         RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
-        RSdec.noiseamp = 180 * uA * cmeter ** -2
+        RSdec.noiseamp = 90 * uA * cmeter ** -2
     else :
         RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
         RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
@@ -410,7 +411,9 @@ if __name__=='__main__':
         'theta_freq': 4*Hz,
         'Jbegin': 50* uA * cmeter ** -2,
         'Jend': 50* uA * cmeter ** -2,
-        'gLIP_FEFv' : 0.015*msiemens * cm **-2, #LIP->FEF visual module synapse conductance :
+        'g_LIP_FEF_v' : 0.015*msiemens * cm **-2, #LIP->FEF visual module synapse conductance :
+        'JRSg' : '15 * uA * cmeter ** -2',
+        'JFSg' : '-5 * uA * cmeter ** -2',
         'target_on': 'True', #'True' if target is presented, 'False' otherwise
         'location': 'Cued location',
         'runtime': 2*second, #simulation duration
@@ -423,7 +426,7 @@ if __name__=='__main__':
     for i,arg in enumerate(sys.argv):
          if "=" in arg:
              key, value = arg.split("=")
-             if key in ['Jbegin', 'Jend']:
+             if key in ['Jbegin', 'Jend', 'JRSg']:
                  simu_dict[key] = int(value)*uA*cmeter**-2
              elif key in ['t_SI', 't_FS']:
                  simu_dict[key] = int(value)*ms
@@ -463,7 +466,7 @@ if __name__=='__main__':
     simu = liste_simus[int(sys.argv[1])]
     
     simu_dict['N_simu'] = int(sys.argv[1])
-    simu_dict['target_time'] = liste_simus[i]
+    simu_dict['target_time'] = liste_simus[simu_dict['N_simu']]
     
     simu_dict["plot_raster"] = True
     

@@ -136,12 +136,16 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         FS_gran_LIP.ginp_FS_bad=15* msiemens * cm **-2
     if theta_phase=='mixed':
         if modeled_screen_location=='Cued location' or modeled_screen_location=='Same object location (uncued 1)':
-            RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
+            #RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
             RSvm_FEF.ginp_RS2_good=2.5* msiemens * cm **-2
-            FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
-            RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
+            #FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
+            #RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
             RSvm_FEF.ginp_RS2_bad=5* msiemens * cm **-2
-            FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
+            #FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
+            RS_gran_LIP.ginp_RS_good=10* msiemens * cm **-2
+            RS_gran_LIP.ginp_RS_bad=10* msiemens * cm **-2
+            FS_gran_LIP.ginp_FS_good=10* msiemens * cm **-2
+            RS_gran_LIP.ginp_RS_bad=10* msiemens * cm **-2
 
     
     net.add(all_neurons_FEF)
@@ -154,7 +158,8 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     net.add(all_monitors_LIP)
     
     S_FEF_IB_LIP=generate_syn(RSvm_FEF,IB_LIP,'Isyn_FEF','',0*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
-    if modeled_screen_location=='Cued location':
+    if modeled_screen_location=='Cued location' or modeled_screen_location=='Same object location (uncued 1)':
+    #if modeled_screen_location=='Cued location':
         S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.05*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
     else:
         S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.01*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
@@ -193,6 +198,8 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     net.add(S_LIP_VIPv_FEF)
     
     print('Compiling with cython')
+
+    prefs.codegen.runtime.cython.cache_dir = '/projectnb/crc-nak/aaussel/cython_uncued_vs_uncued/'+str(datetime.datetime.now())
     
     prefs.codegen.target = 'cython' #cython=faster, numpy = default python
     
@@ -226,8 +233,8 @@ def FEF_and_LIP(simu,path,plot_raster=False):
             
     elif theta_phase=='good':
         noise_array=ones((200000,20))* noise_good
-    # elif theta_phase=='bad':
-    #     noise_array=ones((200000,20))* noise_level
+    elif theta_phase=='bad':
+        noise_array=ones((200000,20))* noise_level
 #    print(noise_array)
     noise=TimedArray(noise_array,dt=defaultclock.dt)
     

@@ -147,12 +147,16 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         FS_gran_LIP.ginp_FS_bad=15* msiemens * cm **-2
     if theta_phase=='mixed':
         if modeled_screen_location=='Cued location' or modeled_screen_location=='Same object location (uncued 1)':
-            RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
+            #RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
             RSvm_FEF.ginp_RS2_good=2.5* msiemens * cm **-2
-            FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
-            RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
+            #FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
+            #RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
             RSvm_FEF.ginp_RS2_bad=5* msiemens * cm **-2
-            FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
+            #FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
+            RS_gran_LIP.ginp_RS_good=10* msiemens * cm **-2
+            RS_gran_LIP.ginp_RS_bad=10* msiemens * cm **-2
+            FS_gran_LIP.ginp_FS_good=10* msiemens * cm **-2
+            RS_gran_LIP.ginp_RS_bad=10* msiemens * cm **-2
 
     
     net.add(all_neurons_FEF)

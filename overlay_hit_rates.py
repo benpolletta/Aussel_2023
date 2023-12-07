@@ -30,11 +30,11 @@ order+=[14,43]
 
 liste_target_time=[liste_target_time[i] for i in order]
 
-prefix = 'jitter' #'gPul' # 
-suffix = '' #'mScm-2' # 
-j_list = [0.75, 1.0] #[1, 2, 3, 4, 5] #
-description = 'Jitter During Poor Theta Phase' #'mdPul Input Conductance'
-short_description = 'jitter' # 'mdPul Input'
+prefix = 'Jbegin' #'gPul' # 
+suffix = 'Jend' #'mScm-2' # 
+j_list = [85, 75, 50] #[1, 2, 3, 4, 5] #
+description = 'Ramp starting value' #'mdPul Input Conductance'
+short_description = 'Jbegin, Jend' # 'mdPul Input'
 
 # prefix = 'gPul_offset' # 
 # suffix = 'mScm-2' # 
@@ -63,7 +63,8 @@ hit_rates = [[] for j in j_list]
 spectra = [[] for j in j_list]
 
 for i,j in enumerate(j_list):
-    path="simulation_results/"+prefix+"_"+str(j)+suffix+"/figures/" #" gPul_offset_"+str(j)+"mScm-2/figures/"
+    # path="simulation_results/"+prefix+"_"+str(j)+suffix+"_"+"/figures/" #" gPul_offset_"+str(j)+"mScm-2/figures/"
+    path="simulation_results/"+prefix+"_"+str(j)+"_"+suffix+"_"+str(100-j)+"/figures/" #" gPul_offset_"+str(j)+"mScm-2/figures/"
     with open(path+'hit_rates.txt', 'r') as file:
         these_hit_rates = [float(line.strip()) for line in file if line] # file.readlines()
     hit_rates[i] = these_hit_rates
@@ -81,14 +82,16 @@ ylabel('mean hit rate')
 figure(figsize=(10,6))
 # imshow(hit_rates) #liste_target_time, j_list, hit_rates)
 for i,j in enumerate(j_list):
-    plot(liste_target_time, hit_rates[i], color=colors[i], label=str(j)+suffix, alpha=0.75, linewidth=2)
+    #plot(liste_target_time, hit_rates[i], color=colors[i], label=str(j)+suffix, alpha=0.75, linewidth=2)
+    plot(liste_target_time, hit_rates[i], color=colors[i], label=str(j)+", "+str(100-j), alpha=0.75, linewidth=2)
 xlabel('target time (s)')
 ylabel('hit rate')
 legend(loc='best', frameon=False, title=short_description)
 
 figure()
 for i,j in enumerate(j_list):
-    plot(f, spectra[i], color=colors[i], label=str(j)+suffix, alpha = 0.75, linewidth=2.5)
+    #plot(f, spectra[i], color=colors[i], label=str(j)+suffix, alpha = 0.75, linewidth=2.5)
+    plot(f, spectra[i], color=colors[i], label=str(j)+", "+str(100-j), alpha = 0.75, linewidth=2.5)
 xlabel('frequency (Hz)')
 ylabel('power')
 legend(loc='upper right', frameon=False, title=short_description)

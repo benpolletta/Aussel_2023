@@ -50,7 +50,7 @@ folder_name='results_VIP_everywhere_g0_uncued_noise50'
 folder_name='results_VIP_everywhere_g0_uncued_noise10'
 
 folder_name='results_VIP_everywhere_g0_noise100'
-folder_name='simulation_results/jitter_0.5'
+folder_name='simulation_results/Jbegin_50_Jend_50'
 
 
 

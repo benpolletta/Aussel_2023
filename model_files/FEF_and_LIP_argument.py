@@ -8,6 +8,15 @@ Created on Wed Mar 11 13:56:08 2020
 #This is used for simulations that change the time constants of all interneurons of one type at the same time.
 
 from brian2 import *
+import os
+tmpdir = os.environ["TMPDIR"]
+user = os.environ["USER"]
+pid = os.getpid()
+cache_dir = os.path.join(tmpdir, user, str(pid))
+if not os.path.exists(cache_dir):
+    os.makedirs(cache_dir)
+prefs.codegen.runtime.cython.cache_dir = cache_dir
+prefs.codegen.runtime.cython.multiprocess_safe = False
 
 from scipy import signal
 
@@ -21,6 +30,7 @@ except:
 from itertools import *
 from joblib import Parallel, delayed
 import multiprocessing
+import sys
 
 
 def save_raster(name,raster_i,raster_t,path):
@@ -176,13 +186,14 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     RSdec=all_neurons_FEF[-1]
     # RSdec.J='5 * uA * cmeter ** -2'
     
+    RSdec.noiseamp = 180 * uA * cmeter ** -2
     if modeled_screen_location=='Cued location':
-        RSdec.Jbegin='50 * uA * cmeter ** -2'   
-        RSdec.Jend='50 * uA * cmeter ** -2'  
-        RSdec.noiseamp = 90 * uA * cmeter ** -2
+        RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
+        RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
+        RSdec.noiseamp = 180 * uA * cmeter ** -2
     else :
-        RSdec.Jbegin='50 * uA * cmeter ** -2'   
-        RSdec.Jend='50 * uA * cmeter ** -2'  
+        RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
+        RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
         RSdec.noiseamp = 0 * uA * cmeter ** -2        
         
     net.add(S_FEF_IB_LIP)
@@ -410,4 +421,4 @@ if __name__=='__main__':
         
     simu = liste_simus[int(sys.argv[1])]
     
-    FEF_and_LIP(simu,path,plot_raster=False)
+    FEF_and_LIP(simu,path,plot_raster=True)

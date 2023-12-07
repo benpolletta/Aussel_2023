@@ -64,10 +64,13 @@ def generate_syn(source,target,syntype,connection_pattern,g_i,taur_i,taud_i,V_i)
     S.V_i=V_i  
     return S
 
-def FEF_and_LIP(simu,path,plot_raster=False):
+def FEF_and_LIP(simu_dict):
     prefs.codegen.target = 'numpy' 
     g_LIP_FEF_v = 0.015*msiemens * cm **-2
-    modeled_screen_location,target_time,N_simu,t_SI,t_FS,Jbegin,Jend,theta_phase,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8],simu[9]
+    for key in simu_dict:
+        globals()[key] = simu_dict[key]
+    #location,target_time,N_simu,t_SI,t_FS,Jbegin,Jend,theta_phase,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8],simu[9]
+    
     
     # if not plot_raster :
     #     new_path=path+"/results_"
@@ -127,7 +130,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     RS_sup_LIP,IB_LIP,SI_deep_LIP=all_neurons_LIP[0],all_neurons_LIP[5],all_neurons_LIP[9]
     RS_gran_LIP,FS_gran_LIP=all_neurons_LIP[7],all_neurons_LIP[8]
     
-    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(modeled_screen_location,Jbegin,Jend,theta_phase,target_on,runtime,target_time)
+    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(location,Jbegin,Jend,theta_phase,target_on,runtime,target_time)
     R8,R9,V_RS,V_SOM,inp_mon_FEF,R11,R12,R13,R14,mon_RS=all_monitors_FEF
     RSvm_FEF,SIvm_FEF,RSv_FEF,SIv_FEF,VIPv_FEF=all_neurons_FEF[0],all_neurons_FEF[1],all_neurons_FEF[6],all_neurons_FEF[9],all_neurons_FEF[8]
     
@@ -146,7 +149,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
         RS_gran_LIP.ginp_RS_bad=15* msiemens * cm **-2
         FS_gran_LIP.ginp_FS_bad=15* msiemens * cm **-2
     if theta_phase=='mixed':
-        if modeled_screen_location=='Cued location' or modeled_screen_location=='Same object location (uncued1)':
+        if location=='Cued location' or location=='Same object location (uncued1)':
             #RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
             RSvm_FEF.ginp_RS2_good=2.5* msiemens * cm **-2
             #FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
@@ -169,7 +172,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     net.add(all_monitors_LIP)
     
     S_FEF_IB_LIP=generate_syn(RSvm_FEF,IB_LIP,'Isyn_FEF','',0*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
-    if modeled_screen_location=='Cued location' or modeled_screen_location=='Same object location (uncued1)':
+    if location=='Cued location' or location=='Same object location (uncued1)':
         S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.05*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
     else:
         S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.01*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
@@ -191,7 +194,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
     # RSdec.J='5 * uA * cmeter ** -2'
     
     RSdec.noiseamp = 180 * uA * cmeter ** -2
-    if modeled_screen_location=='Cued location':
+    if location=='Cued location':
         RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
         RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
         RSdec.noiseamp = 180 * uA * cmeter ** -2
@@ -377,15 +380,7 @@ def FEF_and_LIP(simu,path,plot_raster=False):
 
 
 if __name__=='__main__':
-    path=""#"/projectnb/crc-nak/brpp/Aussel_2023/simulation_results"
-    if os.name == 'nt':
-        path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
-    else :
-        path="/projectnb/crc-nak/brpp/Aussel_2023/simulation_results/Jbegin_"+sys.argv[2]+"_Jend_"+sys.argv[3]+"/results_"+sys.argv[1]#datetime.datetime.now())
-    
-    if not os.path.exists(path):
-        os.makedirs(path)
-    
+
     #list of target presentation times :
     liste_target_time=[300*msecond,400*msecond,500*msecond,600*msecond,700*msecond,800*msecond,900*msecond,1000*msecond,1100*msecond,1200*msecond,1300*msecond,1400*msecond,1500*msecond,1600*msecond,1700*msecond]
     liste_target_time+=[350*msecond,450*msecond,550*msecond,650*msecond,750*msecond,850*msecond,950*msecond,1050*msecond,1150*msecond,1250*msecond,1350*msecond,1450*msecond,1550*msecond,1650*msecond]
@@ -410,19 +405,66 @@ if __name__=='__main__':
     liste_t_FS=[5*ms]
     
     #Other parameters (fixed across all simulations):
-    theta_phase='mixed' #theta phases to simulate (good, bad or mixed)
-    theta_freq=4*Hz
-    Jbegin=int(sys.argv[2])* uA * cmeter ** -2
-    Jend=int(sys.argv[3])* uA * cmeter ** -2
-    gLIP_FEFv=0.015*msiemens * cm **-2 #LIP->FEF visual module synapse conductance :
-    target_presentation='True' #'True' if target is presented, 'False' otherwise
-    location = 'Cued location'
-    runtime=2*second #simulation duration
+    simu_dict = {
+        'theta_phase': 'mixed', #theta phases to simulate (good, bad or mixed)
+        'theta_freq': 4*Hz,
+        'Jbegin': 50* uA * cmeter ** -2,
+        'Jend': 50* uA * cmeter ** -2,
+        'gLIP_FEFv' : 0.015*msiemens * cm **-2, #LIP->FEF visual module synapse conductance :
+        'target_on': 'True', #'True' if target is presented, 'False' otherwise
+        'location': 'Cued location',
+        'runtime': 2*second, #simulation duration
+        't_SI': 20*ms,
+        't_FS': 5*ms
+    }
+        
+        
+    filename = "simulation"
+    for i,arg in enumerate(sys.argv):
+         if "=" in arg:
+             key, value = arg.split("=")
+             if key in ['Jbegin', 'Jend']:
+                 simu_dict[key] = int(value)*uA*cmeter**-2
+             elif key in ['t_SI', 't_FS']:
+                 simu_dict[key] = int(value)*ms
+             elif key in ['runtime']:
+                 simu_dict[key] = int(value)*second
+             elif key in ['theta_freq']:
+                 simu_dict[key] = int(value)*Hz
+             else:
+                 simu_dict[key] = value
+                 
+                 
+             filename += f"_{key}-{value}"
+                 
+    
+    if simu_dict["location"]=='cued' :
+        simu_dict["location"] = "Cued location"
+    elif simu_dict["location"]=='same' :
+        simu_dict["location"] = "Same object location (uncued1)"
+    elif simu_dict["location"]=='diff' :
+        simu_dict["location"] = "Different object location (uncued2)"
+    
+    path=""#"/projectnb/crc-nak/brpp/Aussel_2023/simulation_results"
+    if os.name == 'nt':
+        path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
+    else :
+        path="/projectnb/crc-nak/brpp/Aussel_2023/simulation_results/"+filename+"/results_"+sys.argv[1]#datetime.datetime.now())
+    
+    if not os.path.exists(path):
+        os.makedirs(path)
+        
+    simu_dict["path"] = path
     
     
-    liste_simus=[[i,j,k] for i in liste_simus for j in liste_t_SOM for k in liste_t_FS]
-    liste_simus=[[location,liste_simus[i][0],i,liste_simus[i][1],liste_simus[i][2],Jbegin,Jend,theta_phase,target_presentation,runtime] for i in range(len(liste_simus))]
+    # liste_simus=[[i,j,k] for i in liste_simus for j in liste_t_SOM for k in liste_t_FS]
+    # liste_simus=[[location,liste_simus[i][0],i,liste_simus[i][1],liste_simus[i][2],Jbegin,Jend,theta_phase,target_presentation,runtime] for i in range(len(liste_simus))]
         
     simu = liste_simus[int(sys.argv[1])]
     
-    FEF_and_LIP(simu,path,plot_raster=True)
+    simu_dict['N_simu'] = int(sys.argv[1])
+    simu_dict['target_time'] = liste_simus[i]
+    
+    simu_dict["plot_raster"] = True
+    
+    FEF_and_LIP(simu_dict)

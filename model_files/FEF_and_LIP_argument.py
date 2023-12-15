@@ -69,7 +69,7 @@ def FEF_and_LIP(simu_dict):
     # g_LIP_FEF_v = 0.015*msiemens * cm **-2
     for key in simu_dict:
         globals()[key] = simu_dict[key]
-    print(globals())
+    print(simu_dict)
     #location,target_time,N_simu,t_SI,t_FS,Jbegin,Jend,theta_phase,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8],simu[9]
     
     
@@ -112,8 +112,8 @@ def FEF_and_LIP(simu_dict):
     all_RSgRSs=[2*msiemens * cm **-2]
     all_RSgFSs=[0.1*msiemens * cm **-2]
     all_FSgRSs=[0.1* msiemens * cm **-2]
-    all_J_RSg=JRsg #['15 * uA * cmeter ** -2']
-    all_J_FSg=JFSg #['-5 * uA * cmeter ** -2']
+    all_J_RSg=[JRSg] #['15 * uA * cmeter ** -2']
+    all_J_FSg=[JFSg] #['-5 * uA * cmeter ** -2']
     all_thal=[10* msiemens * cm **-2]
     thal=all_thal[0]
     
@@ -137,7 +137,7 @@ def FEF_and_LIP(simu_dict):
     
     IB_LIP.ginp_IB=0* msiemens * cm **-2 #the input to RS_sup_LIP is provided with synapses from FEF 
     SI_deep_LIP.ginp_SI=0* msiemens * cm **-2
-#    RSvm_FEF.ginp_RS=0* msiemens * cm **-2
+    RSvm_FEF.J_fixed = JTonicFEF
     SIvm_FEF.ginp_SI=0* msiemens * cm **-2 ####
     RSv_FEF.ginp_RS=0* msiemens * cm **-2
     SIv_FEF.ginp_SI=0* msiemens * cm **-2
@@ -157,10 +157,10 @@ def FEF_and_LIP(simu_dict):
             #RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
             RSvm_FEF.ginp_RS2_bad=5* msiemens * cm **-2
             #FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
-            RS_gran_LIP.ginp_RS_good=10* msiemens * cm **-2
-            RS_gran_LIP.ginp_RS_bad=10* msiemens * cm **-2
-            FS_gran_LIP.ginp_FS_good=10* msiemens * cm **-2
-            RS_gran_LIP.ginp_RS_bad=10* msiemens * cm **-2
+            RS_gran_LIP.ginp_RS_good=gPulLIPRSgood #10* msiemens * cm **-2
+            RS_gran_LIP.ginp_RS_bad=gPulLIPRSbad #10* msiemens * cm **-2
+            FS_gran_LIP.ginp_FS_good=gPulLIPFSgood #10* msiemens * cm **-2
+            FS_gran_LIP.ginp_FS_bad=gPulLIPFSbad #10* msiemens * cm **-2
 
     
     net.add(all_neurons_FEF)
@@ -194,15 +194,15 @@ def FEF_and_LIP(simu_dict):
     RSdec=all_neurons_FEF[-1]
     # RSdec.J='5 * uA * cmeter ** -2'
     
-    RSdec.noiseamp = 90 * uA * cmeter ** -2
+    RSdec.noiseamp = JnoiseCued # 90 * uA * cmeter ** -2
     if location=='Cued location':
         RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
         RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
-        RSdec.noiseamp = 90 * uA * cmeter ** -2
+        RSdec.noiseamp = JnoiseCued # 90 * uA * cmeter ** -2
     else :
         RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
         RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
-        RSdec.noiseamp = 0 * uA * cmeter ** -2        
+        RSdec.noiseamp = JnoiseUncued # 0 * uA * cmeter ** -2        
         
     net.add(S_FEF_IB_LIP)
     net.add(S_FEF_SIdeep_LIP)
@@ -412,21 +412,33 @@ if __name__=='__main__':
         'Jbegin': 50* uA * cmeter ** -2,
         'Jend': 50* uA * cmeter ** -2,
         'g_LIP_FEF_v' : 0.015*msiemens * cm **-2, #LIP->FEF visual module synapse conductance :
-        'JRSg' : '15 * uA * cmeter ** -2',
-        'JFSg' : '-5 * uA * cmeter ** -2',
+        'gPulLIPRSgood' : 5*msiemens*cm**-2,
+        'gPulLIPRSbad' : 10*msiemens*cm**-2,
+        'gPulLIPFSgood' : 5*msiemens*cm**-2,
+        'gPulLIPFSbad' : 10*msiemens*cm**-2,
+        'gPulFEFgood' : 2.5*msiemens*cm**-2,
+        'gPulFEFbad' : 5*msiemens*cm**-2,
+        'JTonicFEF' : 45 * uA*cm**-2,
+        'JRSg' : 15 * uA * cmeter ** -2,
+        'JFSg' : -5 * uA * cmeter ** -2,
+        'JnoiseCued' : 90 * uA * cmeter ** -2,
+        'JnoiseUncued' : 0 * uA * cmeter ** -2,
         'target_on': 'True', #'True' if target is presented, 'False' otherwise
         'location': 'Cued location',
+        'cuedfile': 'sim_JnoiseCued0',
         'runtime': 2*second, #simulation duration
         't_SI': 20*ms,
         't_FS': 5*ms
     }
         
         
-    filename = "simulation"
+    filename = "sim"
     for i,arg in enumerate(sys.argv):
          if "=" in arg:
              key, value = arg.split("=")
-             if key in ['Jbegin', 'Jend', 'JRSg']:
+             if key.startswith('g'): #in ['Jbegin', 'Jend', 'JRSg', 'JFSg']:
+                 simu_dict[key] = int(value)*msiemens*cmeter**-2
+             elif key.startswith('J'): # in ['Jbegin', 'Jend', 'JRSg', 'JFSg']:
                  simu_dict[key] = int(value)*uA*cmeter**-2
              elif key in ['t_SI', 't_FS']:
                  simu_dict[key] = int(value)*ms
@@ -437,8 +449,10 @@ if __name__=='__main__':
              else:
                  simu_dict[key] = value
                  
-                 
-             filename += f"_{key}-{value}"
+             if key == "location":
+                 filename+=f"_{value}"
+             else:
+                 filename += f"_{key}{value}"
                  
     
     if simu_dict["location"]=='cued' :
@@ -458,6 +472,7 @@ if __name__=='__main__':
         os.makedirs(path)
         
     simu_dict["path"] = path
+    simu_dict["cuedpath"] = "/projectnb/crc-nak/brpp/Aussel_2023/simulation_results/"+simu_dict['cuedfile']+"/results_"+sys.argv[1]
     
     
     # liste_simus=[[i,j,k] for i in liste_simus for j in liste_t_SOM for k in liste_t_FS]
@@ -465,7 +480,7 @@ if __name__=='__main__':
         
     simu = liste_simus[int(sys.argv[1])]
     
-    simu_dict['N_simu'] = int(sys.argv[1])
+    simu_dict['N_simu'] = int(sys.argv[1]) - 1
     simu_dict['target_time'] = liste_simus[simu_dict['N_simu']]
     
     simu_dict["plot_raster"] = True

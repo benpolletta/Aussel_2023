@@ -157,8 +157,11 @@ def generate_deepSI_and_gran_layers(simu_dict):
     #Defining inputs
     #mdPul input
     if location=='Cued location' or location=='Same object location (uncued 1)':
-        RS.ginp_RS2_good=2.5* msiemens * cm **-2
-        RS.ginp_RS2_bad=5* msiemens * cm **-2
+        RS.ginp_RS2_good=gPulFEFgood # 2.5* msiemens * cm **-2
+        RS.ginp_RS2_bad=gPulFEFbad # 5* msiemens * cm **-2
+    else :
+        RS.ginp_RS2_good = 0*msiemens*cm**-2
+        RS.ginp_RS2_bad = 0*msiemens*cm**-2
 
     fmdPul=13*Hz
     # fmdPul=30*Hz
@@ -215,10 +218,10 @@ def generate_deepSI_and_gran_layers(simu_dict):
     
 
     #lateral inhibition inputs
-    try:
-        spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster("fefvm/raster_FEF SI2 vm_t.txt", "fefvm/raster_FEF SI2 vm_i.txt")
-    except:
-        spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster("model_files/fefvm/raster_FEF SI2 vm_t.txt", "model_files/fefvm/raster_FEF SI2 vm_i.txt")
+    # try:
+    spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster(cuedpath+"/raster_FEF SOM vm_t.txt", cuedpath+"/raster_FEF SOM vm_i.txt")
+    # except:
+    #     spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster(cuedpath+"model_files/fefvm/raster_FEF SI2 vm_t.txt", "model_files/fefvm/raster_FEF SI2 vm_i.txt")
     
     if location=='Same object location (uncued 1)' or location=='Different object location (uncued 2)':
         S_in_FEFvm_RS=generate_syn(G_in_FEFvm,RS,'Isyn_FEF_VM_cued','',0.2*msiemens * cm **-2,0.25*ms,t_SI,-80*mV)

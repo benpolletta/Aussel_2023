@@ -1,0 +1,16 @@
+#!/bin/bash -l
+
+#$ -N run_plots
+
+# Join jobs
+#$ -j y
+#$ -o /projectnb/crc-nak/brpp/Aussel_2023/simulation_results/log_files/
+
+# Loading modules
+module load miniconda
+conda activate brienv2
+cd /projectnb/crc-nak/brpp/Aussel_2023/
+git checkout cued_vs_uncued
+
+# python plot_statistics_argument.py $1
+python plot_statistics_argument_v1.py $@

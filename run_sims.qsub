@@ -1,0 +1,27 @@
+#!/bin/bash -l
+
+#$ -N run_FEF_LIP
+
+# Run each simulation as a separate job
+#$ -t 1-2900
+
+## Email me when done
+##$ -m ea
+
+# Join jobs
+#$ -j y
+#$ -o /projectnb/crc-nak/brpp/Aussel_2023/simulation_results/log_files/
+
+# Loading modules
+module load miniconda
+conda activate brienv2
+cd /projectnb/crc-nak/brpp/Aussel_2023/model_files
+git checkout cued_vs_uncued
+
+# Get the simulation index from the SGE_TASK_ID
+# Remember that SGE_TASK_ID starts from 1, but
+# Python indexes from 0.
+
+SIM_INDEX=$(( $SGE_TASK_ID - 1 ))
+
+python FEF_and_LIP_argument.py $SIM_INDEX $@

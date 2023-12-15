@@ -54,9 +54,20 @@ from scipy.stats import spearmanr
 # res_folder='with_noise_0_10_2804'
 # res_folder='with_noise_0_3_triple_0405'
 # res_folder='poisson2ms'
+res_folder = sys.argv[1] #"Jbegin_50_Jend_50"
+
+res_folder = "sim"
+for i,arg in enumerate(sys.argv):
+    if "=" in arg:
+        key, value = arg.split("=")
+                 
+        if key == "location":
+            res_folder +=f"_{value}"
+        else:
+            res_folder += f"_{key}{value}"
 
 theta_freq = 4
-res_folder = "sim_JnoiseCued60" #"jRSFEFvm_27uAcm-2" #'theta_'+str(theta_freq)+'Hz'
+#"jRSFEFvm_27uAcm-2" #'theta_'+str(theta_freq)+'Hz'
 theta_period = 1000/theta_freq
 
 num_theta_bins = 10
@@ -451,23 +462,27 @@ errorbar(liste_target_time, mean_spikes, yerr=std_spikes, fmt='o')
 plot(liste_target_time, mean_spikes,'b')
 xlabel('Target time')
 ylabel('Number of decision cells spikes')
+title(res_folder)
+
 figure()
 plot(liste_target_time,hit_rates)
 xlabel('Target time')
 ylabel('Hit rates')
-
+title(res_folder)
 
 figure()
 errorbar(liste_target_time, mean_spikes_vm, yerr=std_spikes_vm, fmt='o')
 plot(liste_target_time, mean_spikes_vm,'b')
 xlabel('Target time')
 ylabel('Number of FEFvm RS cells spikes')
+title(res_folder)
 
 figure()
 errorbar(liste_target_time, mean_spikes_v, yerr=std_spikes_v, fmt='o')
 plot(liste_target_time, mean_spikes_v,'b')
 xlabel('Target time')
 ylabel('Number of LIPsup RS cells spikes')
+title(res_folder)
 
 figure()
 errorbar(liste_target_time, mean_spikes_FEFvRS, yerr=std_spikes_FEFvRS, fmt='o')
@@ -486,6 +501,7 @@ errorbar(liste_target_time, mean_spikes_FEFvVIP, yerr=std_spikes_FEFvVIP, fmt='o
 plot(liste_target_time, mean_spikes_FEFvVIP,'b')
 xlabel('Target time')
 ylabel('Number of FEFv VIP cells spikes')
+title(res_folder)
 
 figure()
 plot(liste_target_time, mean_spikes_FEFvRS-mean(mean_spikes_FEFvRS),'r',label='FEFv RS')
@@ -494,6 +510,7 @@ plot(liste_target_time, mean_spikes_FEFvVIP-mean(mean_spikes_FEFvVIP),'k',label=
 xlabel('Target time')
 ylabel('Number of spikes during target presentation - mean ')
 legend()
+title(res_folder)
 
 from scipy import signal
 
@@ -503,7 +520,7 @@ figure()
 plot(f,Spectrum)
 xlabel('Frequency (Hz)')
 ylabel('Hit rates Power spectrum')
-
+title(res_folder)
 
 f,Spectrum=signal.periodogram(mean_spikes, 40,'flattop', scaling='spectrum')
 
@@ -511,7 +528,7 @@ figure()
 plot(f,Spectrum)
 xlabel('Frequency (Hz)')
 ylabel('Power spectrum of the number of decision cells spikes')
-
+title(res_folder)
 
 #    theta_phase=[((i+2)*36)%360 for i in range(len(liste_target_time))]
 # theta_phase=[((i+4)*(theta_period/25))%360 for i in range(len(liste_target_time))]
@@ -531,7 +548,7 @@ figure()
 plot(increasing_theta_phase, hr_per_increasing_theta,'b')
 xlabel('Theta phase')
 ylabel('Hit rates')
-
+title(res_folder)
 
 # #If some simulations are missing and there are "nan"s at the end :
 # f,Spectrum=signal.periodogram(hit_rates[:-3], 40,'flattop', scaling='spectrum')
@@ -626,7 +643,7 @@ figure()
 plot(bin_time, N_hits_per_bin)
 xlabel('Time (ms)')
 ylabel('Hits per 25ms time bin')
-
+title(res_folder)
 
 f,Spectrum=signal.periodogram(N_hits_per_bin, 40,'flattop', scaling='spectrum')
 
@@ -693,6 +710,7 @@ if not os.path.exists(path):
     os.mkdir(path)
 for i in get_fignums():
     current_fig=figure(i)
+    title(res_folder)
     current_fig.savefig(path+titles[i-1]+'.png')
     
 with open(path+'hit_rates.txt', 'w') as file:

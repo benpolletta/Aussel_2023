@@ -321,7 +321,7 @@ for simu in liste_simus:
     target_time,n_sim=simu
     i_target_time=liste_target_time.index(target_time)
     try :
-        raster_path = "simulation_results/"+res_folder+"/results_"+str(n_sim+1)
+        raster_path = "simulation_results/"+res_folder+"/results_"+str(n_sim)
         raster_t_name = raster_path + "/raster_FEF RS m_t.txt"
         times=array(read_raster_times(raster_t_name))*second
         number_of_spikes[i_target_time].append((get_N_spikes(times,target_time)))

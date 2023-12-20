@@ -56,8 +56,8 @@ from scipy.stats import spearmanr
 # res_folder='poisson2ms'
 
 theta_freq = 4
-res_folder = "sim_JnoiseCued120" #"jRSFEFvm_27uAcm-2" #'theta_'+str(theta_freq)+'Hz'
->>>>>>> 56b7216 (Plotting statistics w/ command-line arguments; debugging statistics; scripts for submission of simulations & plots; decision cells.)
+res_folder = "sim_JTonicFEF36" #"jRSFEFvm_27uAcm-2" #'theta_'+str(theta_freq)+'Hz'
+>>>>>>> e674916 (Debugging plotting (sim number).)
 theta_period = 1000/theta_freq
 
 num_theta_bins = 10
@@ -321,7 +321,7 @@ for simu in liste_simus:
     target_time,n_sim=simu
     i_target_time=liste_target_time.index(target_time)
     try :
-        raster_path = "simulation_results/"+res_folder+"/results_"+str(n_sim+1)
+        raster_path = "simulation_results/"+res_folder+"/results_"+str(n_sim)
         raster_t_name = raster_path + "/raster_FEF RS m_t.txt"
         times=array(read_raster_times(raster_t_name))*second
         number_of_spikes[i_target_time].append((get_N_spikes(times,target_time)))

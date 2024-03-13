@@ -126,7 +126,7 @@ def FEF_and_LIP(simu_dict):
     
     net=Network()
     
-    all_neurons_LIP, all_synapses_LIP, all_gap_junctions_LIP, all_monitors_LIP=make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase)
+    all_neurons_LIP, all_synapses_LIP, all_gap_junctions_LIP, all_monitors_LIP=make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase, duty_cycle)
     V1,V2,V3,R1,R2,R3,I1,I2,I3,V4,R4,I4s,I4a,I4ad,I4bd,R5,R6,R7,V5,V6,V7=all_monitors_LIP
     RS_sup_LIP,IB_LIP,SI_deep_LIP=all_neurons_LIP[0],all_neurons_LIP[5],all_neurons_LIP[9]
     RS_gran_LIP,FS_gran_LIP=all_neurons_LIP[7],all_neurons_LIP[8]
@@ -138,11 +138,19 @@ def FEF_and_LIP(simu_dict):
     IB_LIP.ginp_IB=0* msiemens * cm **-2 #the input to RS_sup_LIP is provided with synapses from FEF 
     SI_deep_LIP.ginp_SI=0* msiemens * cm **-2
     RSvm_FEF.J_fixed = JTonicFEF
+    RSvm_FEF.ginp_RS=0* msiemens * cm **-2
     SIvm_FEF.ginp_SI=0* msiemens * cm **-2 ####
     RSv_FEF.ginp_RS=0* msiemens * cm **-2
     SIv_FEF.ginp_SI=0* msiemens * cm **-2
     VIPv_FEF.ginp_VIP_good=0* msiemens * cm **-2
     VIPv_FEF.ginp_VIP_bad=0* msiemens * cm **-2
+
+    RSvm_FEF.ginp_RS2_good=0* msiemens * cm **-2
+    RSvm_FEF.ginp_RS2_bad=0* msiemens * cm **-2
+    RS_gran_LIP.ginp_RS_good=0* msiemens * cm **-2 #10* msiemens * cm **-2
+    RS_gran_LIP.ginp_RS_bad=0* msiemens * cm **-2 #10* msiemens * cm **-2
+    FS_gran_LIP.ginp_FS_good=0* msiemens * cm **-2 #10* msiemens * cm **-2
+    FS_gran_LIP.ginp_FS_bad=0* msiemens * cm **-2 #10* msiemens * cm **-2
     
     RSvm_FEF.V = VFEFvmRS
     RSvm_FEF.h = FEFvmRSh
@@ -155,16 +163,21 @@ def FEF_and_LIP(simu_dict):
         FS_gran_LIP.ginp_FS_bad=15* msiemens * cm **-2
     if theta_phase=='mixed':
         if location=='Cued location' or location=='Same object location (uncued1)':
-            #RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
-            RSvm_FEF.ginp_RS2_good=2.5* msiemens * cm **-2
-            #FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
-            #RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
-            RSvm_FEF.ginp_RS2_bad=5* msiemens * cm **-2
-            #FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
-            RS_gran_LIP.ginp_RS_good=gPulLIPRSgood #10* msiemens * cm **-2
-            RS_gran_LIP.ginp_RS_bad=gPulLIPRSbad #10* msiemens * cm **-2
-            FS_gran_LIP.ginp_FS_good=gPulLIPFSgood #10* msiemens * cm **-2
-            FS_gran_LIP.ginp_FS_bad=gPulLIPFSbad #10* msiemens * cm **-2
+            if duty_cycle>=0.1:
+                #RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
+                RSvm_FEF.ginp_RS2_good=20* msiemens * cm **-2
+                #RSvm_FEF.ginp_RS2_good=2.5* msiemens * cm **-2
+                #FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
+                #RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
+                #RSvm_FEF.ginp_RS2_bad=5* msiemens * cm **-2
+                RSvm_FEF.ginp_RS2_bad=20* msiemens * cm **-2
+                #FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
+                RS_gran_LIP.ginp_RS_good=gPulLIPRSgood #10* msiemens * cm **-2
+                RS_gran_LIP.ginp_RS_bad=gPulLIPRSbad #10* msiemens * cm **-2
+                FS_gran_LIP.ginp_FS_good=gPulLIPFSgood #10* msiemens * cm **-2
+                FS_gran_LIP.ginp_FS_bad=gPulLIPFSbad #10* msiemens * cm **-2
+
+    print(RSvm_FEF.ginp_RS2_good,RSvm_FEF.ginp_RS2_bad,RS_gran_LIP.ginp_RS_good,RS_gran_LIP.ginp_RS_bad,FS_gran_LIP.ginp_FS_good,FS_gran_LIP.ginp_FS_bad)
 
     
     net.add(all_neurons_FEF)
@@ -181,11 +194,11 @@ def FEF_and_LIP(simu_dict):
         S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.05*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
     else:
         S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.01*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
-    S_LIP_RS_FEF=generate_syn(RS_sup_LIP,RSvm_FEF,'Isyn_LIP','',0.009*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
-    S_LIP_FS_FEF=generate_syn(RS_sup_LIP,SIvm_FEF,'Isyn_LIP','',0.009*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
+    #S_LIP_RS_FEF=generate_syn(RS_sup_LIP,RSvm_FEF,'Isyn_LIP','',0.009*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
+    #S_LIP_FS_FEF=generate_syn(RS_sup_LIP,SIvm_FEF,'Isyn_LIP','',0.009*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
 
-    # S_LIP_RS_FEF=generate_syn(RS_sup_LIP,RSvm_FEF,'Isyn_LIP','',0.01*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
-    # S_LIP_FS_FEF=generate_syn(RS_sup_LIP,SIvm_FEF,'Isyn_LIP','',0.01*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
+    S_LIP_RS_FEF=generate_syn(RS_sup_LIP,RSvm_FEF,'Isyn_LIP','',0.012*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
+    S_LIP_FS_FEF=generate_syn(RS_sup_LIP,SIvm_FEF,'Isyn_LIP','',0.012*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
 
     S_LIP_RSv_FEF=generate_syn(RS_sup_LIP,RSv_FEF,'Isyn_LIP','',g_LIP_FEF_v,0.125*ms,1*ms,0*mV)   
     S_LIP_SIv_FEF=generate_syn(RS_sup_LIP,SIv_FEF,'Isyn_LIP','',0.025*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
@@ -206,7 +219,11 @@ def FEF_and_LIP(simu_dict):
     else :
         RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
         RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
-        RSdec.noiseamp = JnoiseUncued # 0 * uA * cmeter ** -2        
+        #RSdec.noiseamp = 0 * uA * cmeter ** -2   #JnoiseUncued 
+        RSdec.noiseamp = JnoiseUncued # 40 * uA * cmeter ** -2   #JnoiseUncued    
+
+    gAR_RS_FEF_VM=25 * msiemens * cm **-2
+
         
     net.add(S_FEF_IB_LIP)
     net.add(S_FEF_SIdeep_LIP)
@@ -424,11 +441,11 @@ if __name__=='__main__':
         'gPulLIPFSbad' : 10*msiemens*cm**-2,
         'gPulFEFgood' : 2.5*msiemens*cm**-2,
         'gPulFEFbad' : 5*msiemens*cm**-2,
-        'JTonicFEF' : 45 * uA*cm**-2,
-        'JRSg' : 15 * uA * cmeter ** -2,
-        'JFSg' : -5 * uA * cmeter ** -2,
         'JsameOffset' : 0 * uA * cmeter ** -2,
-        'JnoiseCued' : 90 * uA * cmeter ** -2,
+        'JTonicFEF' : 45 * uA*cm**-2,  #45 * uA*cm**-2,
+        'JRSg' : 15 * uA * cmeter ** -2,  #15 * uA * cmeter ** -2,
+        'JFSg' : -5 * uA * cmeter ** -2,  #-5 * uA * cmeter ** -2,
+        'JnoiseCued' : 120 * uA * cmeter ** -2,
         'JnoiseUncued' : 0 * uA * cmeter ** -2,
         'target_on': 'True', #'True' if target is presented, 'False' otherwise
         'location': 'Cued location',
@@ -437,10 +454,11 @@ if __name__=='__main__':
         't_SI': 20*ms,
         't_FS': 5*ms,
         'taurPulFEF' : 2*ms,
-        'taudPulFEF' : 40*ms,
+        'taudPulFEF' : 10*ms,
         'VFEFvmRS' : -70*mvolt,
         'FEFvmRSh' : 0,
-        'FEFvmRSm' : 0
+        'FEFvmRSm' : 0,
+        'duty_cycle' : 0.5
     }
         
         

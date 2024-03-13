@@ -168,21 +168,24 @@ def generate_deepSI_and_gran_layers(simu_dict):
     spikes_mdPul=generate_spike_timing(N_RS,fmdPul,0*ms,end_time=3000*ms)
     #Theta=4Hz
     theta_frequency=4*Hz
+    print(duty_cycle)
     if theta_phase=='mixed':
         t0=0*ms
         # t1=125*ms
-        t1=0.5/theta_frequency
+        t1=duty_cycle/theta_frequency
+        print(t1)
         spikes_mdPul=generate_spike_timing(N_SOM,fmdPul,t0,end_time=t1)
         while t0+1/theta_frequency<runtime:
             t0,t1=t0+1/theta_frequency,t1+1/theta_frequency
             spikes_mdPul=vstack((spikes_mdPul,generate_spike_timing(N_SOM,fmdPul,t0,end_time=t1)))
             
-    # print(spikes_mdPul[:,0:10])
+    print(spikes_mdPul[:,0:10])
     
     G_in_mdPul = SpikeGeneratorGroup(N_RS, spikes_mdPul[:,1], spikes_mdPul[:,0]*second)
     
     S_in_mdPul=Synapses(G_in_mdPul,RS,on_pre='Vinp2=Vhigh')
     S_in_mdPul.connect(j='i')
+
          
     
     #LIP input
@@ -218,10 +221,12 @@ def generate_deepSI_and_gran_layers(simu_dict):
     
 
     #lateral inhibition inputs
-    # try:
-    spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster(cuedpath+"/raster_FEF SOM vm_t.txt", cuedpath+"/raster_FEF SOM vm_i.txt")
-    # except:
-    #     spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster(cuedpath+"model_files/fefvm/raster_FEF SI2 vm_t.txt", "model_files/fefvm/raster_FEF SI2 vm_i.txt")
+    try:
+        spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster(cuedpath+"/raster_FEF SOM vm_t.txt", cuedpath+"/raster_FEF SOM vm_i.txt")
+    except Exception as E:
+         print(E)
+         print('using backup raster')
+         spikes_FEFvm,G_in_FEFvm,FEF_vm_cued_syn = generate_FEFvm_cued_from_raster("fefvm/raster_FEF SI2 vm_t.txt", "fefvm/raster_FEF SI2 vm_i.txt")
     
     if location=='Same object location (uncued 1)' or location=='Different object location (uncued 2)':
         S_in_FEFvm_RS=generate_syn(G_in_FEFvm,RS,'Isyn_FEF_VM_cued','',0.2*msiemens * cm **-2,0.25*ms,t_SI,-80*mV)

@@ -186,13 +186,13 @@ def sim_FEF_v_alone(simu,path,plot_raster=False):
         new_path=path
     
     
-    Vrev_inp=0*mV
-    taurinp=0.1*ms
-    taudinp=0.5*ms
-    tauinp=taudinp
-    Vhigh=0*mV
-    Vlow=-80*mV
-    ginp=0* msiemens * cm **-2
+    # Vrev_inp=0*mV
+    # taurinp=0.1*ms
+    # taudinp=0.5*ms
+    # tauinp=taudinp
+    # Vhigh=0*mV
+    # Vlow=-80*mV
+    # ginp=0* msiemens * cm **-2
     
     N_FS,N_RS=20,20
     
@@ -258,13 +258,13 @@ if __name__=='__main__':
     target_on=True
     target_time=650*msecond
     
-    Vrev_inp=0*mV
-    taurinp=0.1*ms
-    taudinp=0.5*ms
-    tauinp=taudinp
-    Vhigh=0*mV
-    Vlow=-80*mV
-    ginp=0* msiemens * cm **-2
+    # Vrev_inp=0*mV
+    # taurinp=0.1*ms
+    # taudinp=0.5*ms
+    # tauinp=taudinp
+    # Vhigh=0*mV
+    # Vlow=-80*mV
+    # ginp=0* msiemens * cm **-2
     
     N_FS,N_RS=20,20
     all_neurons,all_synapses,all_monitors=generate_visual_neurons(theta_phase,N_FS,N_RS,runtime,target_on,target_time)    

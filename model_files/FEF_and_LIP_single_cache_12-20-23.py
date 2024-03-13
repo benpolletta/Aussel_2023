@@ -8,15 +8,27 @@ Created on Wed Mar 11 13:56:08 2020
 #This is used for simulations that change the time constants of all interneurons of one type at the same time.
 
 from brian2 import *
+
+
 import os
-tmpdir = os.environ["TMPDIR"]
-user = os.environ["USER"]
-pid = os.getpid()
-cache_dir = os.path.join(tmpdir, user, str(pid))
-if not os.path.exists(cache_dir):
-    os.makedirs(cache_dir)
-prefs.codegen.runtime.cython.cache_dir = cache_dir
-prefs.codegen.runtime.cython.multiprocess_safe = False
+prefs.codegen.target = 'numpy'
+# tmpdir = os.environ["TMPDIR"]
+# user = os.environ["USER"]
+# pid = os.getpid()
+# cache_dir = '/projectnb/crc-nak/brpp/cython_cache' #os.path.join(tmpdir, user, str(pid))
+# #if not os.path.exists(cache_dir):
+# #    os.makedirs(cache_dir)
+# prefs.codegen.runtime.cython.cache_dir = cache_dir
+# prefs.codegen.runtime.cython.multiprocess_safe = False
+# # Enable OpenMP multithreading in compiled code
+# # prefs.devices.cpp_standalone.openmp_threads = int(os.environ['NSLOTS'])
+# # Set the compiled code to target Sandybridge, the lowest common denominator
+# # CPU on the SCC. With the cache directory setting this *should* result
+# # in compilation happening once, then getting re-used for each simulation.
+# prefs.codegen.cpp.extra_compile_args_gcc = ['-w','-O3', '-ffast-math', '-fno-finite-math-only', '-march=sandybridge', '-mtune=intel','-std=c++11']
+# # the compiler does this anyway, it should speed up the compilation time
+# prefs.codegen.loop_invariant_optimisations = False
+# prefs.codegen.max_cache_dir_size = 0
 
 from scipy import signal
 
@@ -28,12 +40,13 @@ except:
     from model_files.FEF_full import *
 
 from itertools import *
-from joblib import Parallel, delayed
-import multiprocessing
+#from joblib import Parallel, delayed
+#import multiprocessing
 import sys
 
 
 def save_raster(name,raster_i,raster_t,path):
+    raster_filename = path+'/raster_'+name+'_i.txt'
     raster_file=open(path+'/raster_'+name+'_i.txt','w')
     for elem in raster_i:
         raster_file.write(str(elem)+',')
@@ -64,23 +77,20 @@ def generate_syn(source,target,syntype,connection_pattern,g_i,taur_i,taud_i,V_i)
     S.V_i=V_i  
     return S
 
-def FEF_and_LIP(simu_dict):
+def FEF_and_LIP(simu,path,plot_raster=False):
     prefs.codegen.target = 'numpy' 
-    # g_LIP_FEF_v = 0.015*msiemens * cm **-2
-    for key in simu_dict:
-        globals()[key] = simu_dict[key]
-    print(simu_dict)
-    #location,target_time,N_simu,t_SI,t_FS,Jbegin,Jend,theta_phase,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8],simu[9]
-    
+    target_time,simu_number,t_SI,t_FS,theta_phase,j_rsfefvm,g_LIP_FEF_v,target_on,runtime=simu[0],simu[1],simu[2],simu[3],simu[4],simu[5],simu[6],simu[7],simu[8]
     
     # if not plot_raster :
     #     new_path=path+"/results_"
     #     os.mkdir(new_path)
     # else :
-    new_path=path
+    #     new_path=path
     
     start_scope()
     close('all')
+    
+    theta_freq=4*Hz
     
     Vrev_inp=0*mV
     taurinp=0.1*ms
@@ -93,15 +103,15 @@ def FEF_and_LIP(simu_dict):
     taudinp2=10*ms
     tauinp2=taudinp2
     
-    taurinp3=taurPulFEF #2*ms
-    taudinp3=taudPulFEF #40*ms
+    taurinp3=0.1*ms
+    taudinp3=0.5*ms #40*ms
     tauinp3=taudinp3
 
     
     NN=1 #multiplicative factor on the number of neurons
     N_RS,N_FS,N_SI,N_IB= NN*80,NN*20,NN*20,NN*20 #Number of neurons of RE, TC, and HTC type
     N_SI,N_RS_gran,N_SI_gran=20,20,20
-    #N_RS_vis,N_FS_vis,N_RS_mot,N_SI_mot,N_RS_vm,N_SI_vm=[20]*6
+    N_RS_vis,N_FS_vis,N_RS_mot,N_SI_mot,N_RS_vm,N_SI_vm=[20]*6
 
     
     all_SIdFSg=[2*msiemens * cm **-2] #1
@@ -112,8 +122,8 @@ def FEF_and_LIP(simu_dict):
     all_RSgRSs=[2*msiemens * cm **-2]
     all_RSgFSs=[0.1*msiemens * cm **-2]
     all_FSgRSs=[0.1* msiemens * cm **-2]
-    all_J_RSg=[JRSg] #['15 * uA * cmeter ** -2']
-    all_J_FSg=[JFSg] #['-5 * uA * cmeter ** -2']
+    all_J_RSg=['15 * uA * cmeter ** -2']
+    all_J_FSg=['-5 * uA * cmeter ** -2']
     all_thal=[10* msiemens * cm **-2]
     thal=all_thal[0]
     
@@ -126,27 +136,27 @@ def FEF_and_LIP(simu_dict):
     
     net=Network()
     
-    all_neurons_LIP, all_synapses_LIP, all_gap_junctions_LIP, all_monitors_LIP=make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase)
+    all_neurons_LIP, all_synapses_LIP, all_gap_junctions_LIP, all_monitors_LIP=make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,theta_freq)
     V1,V2,V3,R1,R2,R3,I1,I2,I3,V4,R4,I4s,I4a,I4ad,I4bd,R5,R6,R7,V5,V6,V7=all_monitors_LIP
     RS_sup_LIP,IB_LIP,SI_deep_LIP=all_neurons_LIP[0],all_neurons_LIP[5],all_neurons_LIP[9]
     RS_gran_LIP,FS_gran_LIP=all_neurons_LIP[7],all_neurons_LIP[8]
     
-    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(simu_dict)
+    all_neurons_FEF,all_synapses_FEF,all_monitors_FEF=create_FEF_full2(theta_phase,j_rsfefvm,target_on,runtime,target_time)
     R8,R9,V_RS,V_SOM,inp_mon_FEF,R11,R12,R13,R14,mon_RS=all_monitors_FEF
-    RSvm_FEF,SIvm_FEF,RSv_FEF,SIv_FEF,VIPv_FEF=all_neurons_FEF[0],all_neurons_FEF[1],all_neurons_FEF[6],all_neurons_FEF[9],all_neurons_FEF[8]
+    RSvm_FEF,SIvm_FEF,RSv_FEF,SIv_FEF,VIPv_FEF=all_neurons_FEF[0],all_neurons_FEF[1],all_neurons_FEF[4],all_neurons_FEF[7],all_neurons_FEF[6]
     
     IB_LIP.ginp_IB=0* msiemens * cm **-2 #the input to RS_sup_LIP is provided with synapses from FEF 
     SI_deep_LIP.ginp_SI=0* msiemens * cm **-2
-    RSvm_FEF.J_fixed = JTonicFEF
+    RSvm_FEF.ginp_RS=0* msiemens * cm **-2
     SIvm_FEF.ginp_SI=0* msiemens * cm **-2 ####
     RSv_FEF.ginp_RS=0* msiemens * cm **-2
     SIv_FEF.ginp_SI=0* msiemens * cm **-2
     VIPv_FEF.ginp_VIP_good=0* msiemens * cm **-2
     VIPv_FEF.ginp_VIP_bad=0* msiemens * cm **-2
     
-    RSvm_FEF.V = VFEFvmRS
-    RSvm_FEF.h = FEFvmRSh
-    RSvm_FEF.m = FEFvmRSm
+    RS_gran_LIP.theta_freq = theta_freq
+    FS_gran_LIP.theta_freq = theta_freq
+    RSvm_FEF.theta_freq = theta_freq
     
     if theta_phase=='good':
         RS_gran_LIP.ginp_RS_good=15* msiemens * cm **-2
@@ -154,21 +164,16 @@ def FEF_and_LIP(simu_dict):
         RS_gran_LIP.ginp_RS_bad=15* msiemens * cm **-2
         FS_gran_LIP.ginp_FS_bad=15* msiemens * cm **-2
     if theta_phase=='mixed':
-        if location=='Cued location' or location=='Same object location (uncued1)':
-            #RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
-            RSvm_FEF.ginp_RS2_good=2.5* msiemens * cm **-2
-            #FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
-            #RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
-            RSvm_FEF.ginp_RS2_bad=5* msiemens * cm **-2
-            #FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
-            RS_gran_LIP.ginp_RS_good=gPulLIPRSgood #10* msiemens * cm **-2
-            RS_gran_LIP.ginp_RS_bad=gPulLIPRSbad #10* msiemens * cm **-2
-            FS_gran_LIP.ginp_FS_good=gPulLIPFSgood #10* msiemens * cm **-2
-            FS_gran_LIP.ginp_FS_bad=gPulLIPFSbad #10* msiemens * cm **-2
+        RS_gran_LIP.ginp_RS_good=2.5* msiemens * cm **-2
+        RSvm_FEF.ginp_RS2_good=2.5* msiemens * cm **-2
+        FS_gran_LIP.ginp_FS_good=2.5* msiemens * cm **-2
+        RS_gran_LIP.ginp_RS_bad=5* msiemens * cm **-2
+        RSvm_FEF.ginp_RS2_bad=5* msiemens * cm **-2
+        FS_gran_LIP.ginp_FS_bad=5* msiemens * cm **-2
 
     
     net.add(all_neurons_FEF)
-    net.add(all_synapses_FEF)
+    net.add(all_synapses_FEF) #[0:3]+all_synapses_FEF[6:-1])
     net.add(all_monitors_FEF)    
     
     net.add(all_neurons_LIP)
@@ -177,10 +182,7 @@ def FEF_and_LIP(simu_dict):
     net.add(all_monitors_LIP)
     
     S_FEF_IB_LIP=generate_syn(RSvm_FEF,IB_LIP,'Isyn_FEF','',0*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
-    if location=='Cued location' or location=='Same object location (uncued1)':
-        S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.05*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
-    else:
-        S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.01*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
+    S_FEF_SIdeep_LIP=generate_syn(RSvm_FEF,SI_deep_LIP,'Isyn_FEF','',0.05*msiemens * cm **-2,0.125*ms,1*ms,0*mV)
     S_LIP_RS_FEF=generate_syn(RS_sup_LIP,RSvm_FEF,'Isyn_LIP','',0.009*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
     S_LIP_FS_FEF=generate_syn(RS_sup_LIP,SIvm_FEF,'Isyn_LIP','',0.009*msiemens * cm **-2,0.125*ms,1*ms,0*mV)   
 
@@ -194,19 +196,6 @@ def FEF_and_LIP(simu_dict):
     RSv_FEF.ginp_RS2=2.5* msiemens * cm **-2
     SIv_FEF.ginp_SI2=2.5* msiemens * cm **-2
     VIPv_FEF.ginp_VIP2=2.5* msiemens * cm **-2
-    
-    RSdec=all_neurons_FEF[-1]
-    # RSdec.J='5 * uA * cmeter ** -2'
-    
-    RSdec.noiseamp = JnoiseCued # 90 * uA * cmeter ** -2
-    if location=='Cued location':
-        RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
-        RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
-        RSdec.noiseamp = JnoiseCued # 90 * uA * cmeter ** -2
-    else :
-        RSdec.Jbegin=Jbegin #'50 * uA * cmeter ** -2'   
-        RSdec.Jend=Jend #'50 * uA * cmeter ** -2'  
-        RSdec.noiseamp = JnoiseUncued # 0 * uA * cmeter ** -2        
         
     net.add(S_FEF_IB_LIP)
     net.add(S_FEF_SIdeep_LIP)
@@ -216,9 +205,9 @@ def FEF_and_LIP(simu_dict):
     net.add(S_LIP_SIv_FEF)
     net.add(S_LIP_VIPv_FEF)
     
-    print('Compiling with cython')
+    # print('Compiling with cython')
     
-    prefs.codegen.target = 'cython' #cython=faster, numpy = default python
+    # prefs.codegen.target = 'auto' #cython=faster, numpy = default python
     
     # taurinp=0.1*ms
     # taudinp=0.5*ms
@@ -230,28 +219,32 @@ def FEF_and_LIP(simu_dict):
     # taudinp2=10*ms
     # tauinp2=taudinp2
     
-    # taurinp3=2*ms
-    # taudinp3=40*ms
+    # taurinp3=2*ms #2*ms
+    # taudinp3=10*ms #40*ms
     # tauinp3=taudinp3
     
     noise_good=0* uA * cmeter ** -2
-    noise_level=0* uA * cmeter ** -2
-    # noise_level=-30* uA * cmeter ** -2
+    noise_level=-30* uA * cmeter ** -2
+    # noise_level=-40* uA * cmeter ** -2
     noise_array=ones((200000,20))* noise_level
+    noise=TimedArray(noise_array,dt=defaultclock.dt)
+    theta_period=1/theta_freq
     if theta_phase=='mixed':
-        t0,t1=125*ms,250*ms
+        t0,t1=theta_period/2,theta_period
+        print('t0 = '+str(theta_period/2)+'; t1 = '+str(theta_period))
         i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1
+        print('i0 = '+str(i0)+'; i1 = '+str(i1))
         noise_array=ones((200000,20))* noise_good
-        noise_array[i0:i1,:]=noise_level* rand(12500,20)
-        while t0+250*ms<runtime:
-            t0,t1=t0+250*ms,t1+250*ms
+        noise_array[i0:i1,:]=noise_level* rand(i1-i0,20)
+        while t0+theta_period<runtime:
+            t0,t1=t0+theta_period,t1+theta_period
             i0,i1=int(t0//defaultclock.dt)+1,int(t1//defaultclock.dt)+1
-            noise_array[i0:i1,:]=noise_level* rand(12500,20)
-            
+            noise_array[i0:i1,:]=noise_level* rand(i1-i0,20)
+
     elif theta_phase=='good':
         noise_array=ones((200000,20))* noise_good
-    # elif theta_phase=='bad':
-    #     noise_array=ones((200000,20))* noise_level
+    elif theta_phase=='bad':
+        noise_array=ones((200000,20))* noise_level
 #    print(noise_array)
     noise=TimedArray(noise_array,dt=defaultclock.dt)
     
@@ -264,20 +257,20 @@ def FEF_and_LIP(simu_dict):
     print(RSvm_FEF.Iinp2[:])
     print(RSvm_FEF.J[:])
     
-    save_raster('LIP RS',R1.i,R1.t,new_path)
-    save_raster('LIP FS',R2.i,R2.t,new_path)
-    save_raster('LIP SI',R3.i,R3.t,new_path)
-    save_raster('LIP IB',R4.i,R4.t,new_path)
-    save_raster('LIP RS gran',R5.i,R5.t,new_path)
-    save_raster('LIP FS gran',R6.i,R6.t,new_path)
-    save_raster('LIP SI deep',R7.i,R7.t,new_path)
-    save_raster('FEF RS vm',R8.i,R8.t,new_path)
-    save_raster('FEF SOM vm',R9.i,R9.t,new_path)
-    save_raster('FEF RS v',R11.i,R11.t,new_path)
-    save_raster('FEF FS v',R12.i,R12.t,new_path)
-    save_raster('FEF VIP v',R13.i,R13.t,new_path)
-    save_raster('FEF SI v',R14.i,R14.t,new_path)
-    save_raster('FEF RS m',mon_RS.i,mon_RS.t,new_path)
+    save_raster('LIP RS',R1.i,R1.t,path)
+    save_raster('LIP FS',R2.i,R2.t,path)
+    save_raster('LIP SI',R3.i,R3.t,path)
+    save_raster('LIP IB',R4.i,R4.t,path)
+    save_raster('LIP RS gran',R5.i,R5.t,path)
+    save_raster('LIP FS gran',R6.i,R6.t,path)
+    save_raster('LIP SI deep',R7.i,R7.t,path)
+    save_raster('FEF RS vm',R8.i,R8.t,path)
+    save_raster('FEF SOM vm',R9.i,R9.t,path)
+    save_raster('FEF RS v',R11.i,R11.t,path)
+    save_raster('FEF FS v',R12.i,R12.t,path)
+    save_raster('FEF VIP v',R13.i,R13.t,path)
+    save_raster('FEF SI v',R14.i,R14.t,path)
+    save_raster('FEF RS m',mon_RS.i,mon_RS.t,path)
 
     if plot_raster:
         #LIP Plot
@@ -296,8 +289,8 @@ def FEF_and_LIP(simu_dict):
         title('LIP raster')
         
         #FEF Plots    
-        figure(figsize=(10,6))
-        subplot(311)
+        figure(figsize=(10,4))
+        subplot(131)
         title('Visual Neurons')
         plot(R11.t,R11.i+0,'r.',label='RS cells')
         plot(R12.t,R12.i+20,'b.',label='FS cells')
@@ -308,17 +301,16 @@ def FEF_and_LIP(simu_dict):
         xlabel('Time (s)')
         ylabel('Neuron index')
         
-        subplot(312)
+        subplot(132)
         title('Visual-Motor Neurons')
         plot(R8.t,R8.i+60,'r.',label='RS cells')
         plot(R9.t,R9.i+40,'g.',label='SOM cells')
-        # plot(RVIP_FEF.t,RVIP_FEF.i+40,'k.',label='VIP cells')
         xlim(0.2,runtime/second)
         legend(loc='upper left') 
         xlabel('Time (s)')
         ylabel('Neuron index')
         
-        subplot(313)
+        subplot(133)
         title('Decision cells')
         plot(mon_RS.t,mon_RS.i+0,'r.',label='RS cells')
         xlim(0.2,runtime/second)
@@ -330,13 +322,12 @@ def FEF_and_LIP(simu_dict):
         suptitle('FEF raster')
         
         # LIP and FEF Plots
-        figure(figsize=(10, 8))
+        figure(figsize=(4,9))
     #    subplot(411)
         up=200
         plot(R1.t,R1.i+140+up,'r.',label='RS cells')
         plot(R2.t,R2.i+120+up,'b.',label='FS cells')
         plot(R3.t,R3.i+100+up,'g.',label='SOM cells')
-        # plot(RVIP_LIP.t,RVIP_LIP.i+100+up,'k.',label='VIP cells')
         plot([0.2,runtime/second],[95+up,95+up],'k--')
         plot(R5.t,R5.i+70+up,'r.')
         plot(R6.t,R6.i+50+up,'b.')
@@ -357,7 +348,6 @@ def FEF_and_LIP(simu_dict):
         up=140
         plot(R8.t,R8.i+20+up,'r.')
         plot(R9.t,R9.i+0+up,'g.')
-        # plot(RVIP_FEF.t,RVIP_FEF.i+0+up,'k.',label='VIP cells')
         xlim(0.2,runtime/second)
         plot([0.2,runtime/second],[up-10,up-10],'k')
 
@@ -376,17 +366,36 @@ def FEF_and_LIP(simu_dict):
         # figure()
         # plot(inp_mon_FEF.t,inp_mon_FEF.Iinp2[0],'r.',label='RS cells')
         
-        # figure()
-        # plot(inp_mon_FEF.t,inp_mon_FEF.Isyn[0])
+        figure()
+        plot(inp_mon_FEF.t,inp_mon_FEF.sinp2[0]*inp_mon_FEF.ginp_RS2[0])
+        xlabel('Time (s)')
+        ylabel('Pulvinar Input to FEF')
+        
+        figure()
+        plot(V5.t,V5.sinp[0]*V5.ginp_RS[0])
+        xlabel('Time (s)')
+        ylabel('Pulvinar Input to LIP')
         
 #        show()
     
-#    clear_cache('cython')
+ #   clear_cache('cython')
 
 
 if __name__=='__main__':
-
-    print(sys.argv)
+    path="/projectnb/crc-nak/brpp/Aussel_2023/simulation_results"
+    if os.name == 'nt':
+        path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
+    else :
+        path=path+"/jRSFEFvm_"+sys.argv[2]+"uAcm-2/results_"+sys.argv[1]#datetime.datetime.now())
+    
+    if not os.path.exists(path):
+        os.makedirs(path)
+        
+    test_raster_filename = path+'/raster_FEF RS m_t.txt'
+    
+    if os.path.isfile(test_raster_filename):
+        if os.path.getsize(test_raster_filename) > 0:
+            sys.exit(0)
     
     #list of target presentation times :
     liste_target_time=[300*msecond,400*msecond,500*msecond,600*msecond,700*msecond,800*msecond,900*msecond,1000*msecond,1100*msecond,1200*msecond,1300*msecond,1400*msecond,1500*msecond,1600*msecond,1700*msecond]
@@ -407,109 +416,34 @@ if __name__=='__main__':
     for t in liste_target_time:
         liste_simus+=[t]*N
     
+    idx = int(sys.argv[1])
+    print(f'Running simulation {idx} out of {len(liste_simus)}')
+
+    
     #Setting up the lists of SOM and FS inhibition decay times to use :
     liste_t_SOM=[20*ms]
     liste_t_FS=[5*ms]
     
     #Other parameters (fixed across all simulations):
-    simu_dict = {
-        'theta_phase': 'mixed', #theta phases to simulate (good, bad or mixed)
-        'theta_freq': 4*Hz,
-        'Jbegin': 50* uA * cmeter ** -2,
-        'Jend': 50* uA * cmeter ** -2,
-        'g_LIP_FEF_v' : 0.015*msiemens * cm **-2, #LIP->FEF visual module synapse conductance :
-        'gPulLIPRSgood' : 5*msiemens*cm**-2,
-        'gPulLIPRSbad' : 10*msiemens*cm**-2,
-        'gPulLIPFSgood' : 5*msiemens*cm**-2,
-        'gPulLIPFSbad' : 10*msiemens*cm**-2,
-        'gPulFEFgood' : 2.5*msiemens*cm**-2,
-        'gPulFEFbad' : 5*msiemens*cm**-2,
-        'JTonicFEF' : 45 * uA*cm**-2,
-        'JRSg' : 15 * uA * cmeter ** -2,
-        'JFSg' : -5 * uA * cmeter ** -2,
-        'JsameOffset' : 0 * uA * cmeter ** -2,
-        'JnoiseCued' : 90 * uA * cmeter ** -2,
-        'JnoiseUncued' : 0 * uA * cmeter ** -2,
-        'target_on': 'True', #'True' if target is presented, 'False' otherwise
-        'location': 'Cued location',
-        'cuedfile': 'sim',
-        'runtime': 2*second, #simulation duration
-        't_SI': 20*ms,
-        't_FS': 5*ms,
-        'taurPulFEF' : 2*ms,
-        'taudPulFEF' : 40*ms,
-        'VFEFvmRS' : -70*mvolt,
-        'FEFvmRSh' : 0,
-        'FEFvmRSm' : 0
-    }
+    theta_phase='mixed' #theta phases to simulate (good, bad or mixed)
+    j_rsfefvm=int(sys.argv[2])*uA*cmeter**-2
+    gLIP_FEFv=0.015*msiemens * cm **-2 #LIP->FEF visual module synapse conductance :
+    target_presentation='True' #'True' if target is presented, 'False' otherwise
+    runtime=2*second #simulation duration
+ 
+    if idx < 0:
+        # This is just to trigger Cython, short runtime.
+        runtime = 0.01*second
+        # no need to really save anything...
+        path = os.environ['TMPDIR']
         
         
-    filename = "sim"
-    for i,arg in enumerate(sys.argv):
-         if "=" in arg:
-             key, value = arg.split("=")
-             if key.startswith('g'): #in ['Jbegin', 'Jend', 'JRSg', 'JFSg']:
-                 simu_dict[key] = float32(value)*msiemens*cmeter**-2
-             elif key.startswith('J'): # in ['Jbegin', 'Jend', 'JRSg', 'JFSg']:
-                 simu_dict[key] = float32(value)*uA*cmeter**-2
-             elif key.startswith('t'): # in ['t_SI', 't_FS']:
-                 simu_dict[key] = float32(value)*ms
-             elif key.startswith('V'):
-                 simu_dict[key] = float32(value)*mvolt
-             elif key in ['runtime']:
-                 simu_dict[key] = float32(value)*second
-             elif key in ['theta_freq']:
-                 simu_dict[key] = float32(value)*Hz
-             else:
-                 simu_dict[key] = value
-                 
-             if key == "location":
-                 filename+=f"_{value}"
-             else:
-                 filename += f"_{key}{value}"
-                 
-    print(filename)
-    
-    if simu_dict["location"]=='cued' :
-        simu_dict["location"] = "Cued location"
-    elif simu_dict["location"]=='same' :
-        simu_dict["location"] = "Same object location (uncued1)"
-        Jlabel = '_JsameOffset' + str(round(simu_dict["JsameOffset"]/(uA*cmeter**-2)))
-        print(Jlabel)
-        simu_dict["cuedfile"] = filename.replace('_same','').replace(Jlabel, '')
-        simu_dict["JTonicFEF"] = simu_dict["JTonicFEF"] + simu_dict["JsameOffset"]
-        simu_dict["JRSg"] = simu_dict["JRSg"] + simu_dict["JsameOffset"]
-        simu_dict["JFSg"] = simu_dict["JFSg"] + simu_dict["JsameOffset"]
-    elif simu_dict["location"]=='diff' :
-        simu_dict["location"] = "Different object location (uncued2)"
-        Jlabel = '_JsameOffset' + str(round(simu_dict["JsameOffset"]/(uA*cmeter**-2)))
-        print(Jlabel)
-        simu_dict["cuedfile"] = filename.replace('_diff','').replace(Jlabel, '')
-        simu_dict["JTonicFEF"] = simu_dict["JTonicFEF"] + simu_dict["JsameOffset"]
-        simu_dict["JRSg"] = simu_dict["JRSg"] + simu_dict["JsameOffset"]
-        simu_dict["JFSg"] = simu_dict["JFSg"] + simu_dict["JsameOffset"]
-    
-    path=""#"/projectnb/crc-nak/brpp/Aussel_2023/simulation_results"
-    if os.name == 'nt':
-        path=os.path.join(ntpath.dirname(os.path.abspath(__file__)),"results_"+str(datetime.datetime.now()).replace(':','-'))
-    else :
-        path="/projectnb/crc-nak/brpp/Aussel_2023/simulation_results/"+filename+"/results_"+sys.argv[1]#datetime.datetime.now())
-    
-    if not os.path.exists(path):
-        os.makedirs(path)
-        
-    simu_dict["path"] = path
-    simu_dict["cuedpath"] = "/projectnb/crc-nak/brpp/Aussel_2023/simulation_results/"+simu_dict['cuedfile']+"/results_"+sys.argv[1]
+    liste_simus=[[i,j,k] for i in liste_simus for j in liste_t_SOM for k in liste_t_FS]
+    liste_simus=[[liste_simus[i][0],i,liste_simus[i][1],liste_simus[i][2],theta_phase,j_rsfefvm,gLIP_FEFv,target_presentation,runtime] for i in range(len(liste_simus))]
     
     
-    # liste_simus=[[i,j,k] for i in liste_simus for j in liste_t_SOM for k in liste_t_FS]
-    # liste_simus=[[location,liste_simus[i][0],i,liste_simus[i][1],liste_simus[i][2],Jbegin,Jend,theta_phase,target_presentation,runtime] for i in range(len(liste_simus))]
-        
     simu = liste_simus[int(sys.argv[1])]
     
-    simu_dict['N_simu'] = int(sys.argv[1]) - 1
-    simu_dict['target_time'] = liste_simus[simu_dict['N_simu']]
-    
-    simu_dict["plot_raster"] = True
-    
-    FEF_and_LIP(simu_dict)
+    FEF_and_LIP(simu,path,plot_raster=False)
+
+    #clear_cache('cython')

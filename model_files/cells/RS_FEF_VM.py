@@ -30,7 +30,7 @@ IK=gK_RS*m**4*(V-VK_RS) : amp * meter ** -2
     dm/dt=1/taum*(minf-m) : 1
     minf=1/(1+exp((-V-29.5*mV)/10/mV)) : 1
     taum=0.25*ms+4.35*ms*exp(-abs(V+10*mV)/10/mV) : second
-IAR=gAR_RS*mAR*(V-VAR_RS) : amp * meter ** -2
+IAR=gAR_RS_FEF_VM*mAR*(V-VAR_RS) : amp * meter ** -2
     dmAR/dt=1/taumAR*(mARinf-mAR) : 1
     mARinf=1/(1+exp((V+87.5*mV)/5.5/mV)) : 1
     taumAR=1*ms/(exp((-14.6*mV-0.086*V)/mV)+exp((-1.87*mV+0.07*V)/mV)) : second
@@ -68,7 +68,7 @@ VNa_RS=50*mV
 gK_RS=20 * msiemens * cm **-2
 VK_RS=-95*mV
 #gAR_RS=40 * msiemens * cm **-2 #25 in Mark model, but other channel properties have been changed as well (forward,backward rates)
-gAR_RS=25 * msiemens * cm **-2
+gAR_RS_FEF_VM=25 * msiemens * cm **-2
 VAR_RS=-35*mV
 
 sig_ranRS_FEF_VM=0.15* mamp * cm **-2*0.5

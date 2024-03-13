@@ -56,8 +56,7 @@ from scipy.stats import spearmanr
 # res_folder='poisson2ms'
 
 theta_freq = 4
-res_folder = "sim_JTonicFEF36" #"jRSFEFvm_27uAcm-2" #'theta_'+str(theta_freq)+'Hz'
->>>>>>> e674916 (Debugging plotting (sim number).)
+res_folder = "sim_taudPulFEF10_JnoiseCued120_Jbegin80" #"jRSFEFvm_27uAcm-2" #'theta_'+str(theta_freq)+'Hz'
 theta_period = 1000/theta_freq
 
 num_theta_bins = 10

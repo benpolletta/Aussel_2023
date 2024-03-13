@@ -30,11 +30,12 @@ order+=[14,43]
 
 liste_target_time=[liste_target_time[i] for i in order]
 
-prefix = 'Jbegin' #'gPul' # 
-suffix = 'Jend' #'mScm-2' # 
-j_list = [85, 75, 50] #[1, 2, 3, 4, 5] #
-description = 'Ramp starting value' #'mdPul Input Conductance'
-short_description = 'Jbegin, Jend' # 'mdPul Input'
+prefix = 'sim_taurPulFEF2_taudPulFEF10_JnoiseCued120'#'Jbegin' #'gPul' # 
+suffix = '' #'Jend' #'mScm-2' # 
+j_list = ['', '_same', '_diff'] #[85, 75, 50] #[1, 2, 3, 4, 5] #
+j_labels = ['cued', 'same', 'diff']
+description = 'Location'#'Ramp starting value' #'mdPul Input Conductance'
+short_description = 'Loc.'#'Jbegin, Jend' # 'mdPul Input'
 
 # prefix = 'gPul_offset' # 
 # suffix = 'mScm-2' # 
@@ -64,7 +65,7 @@ spectra = [[] for j in j_list]
 
 for i,j in enumerate(j_list):
     # path="simulation_results/"+prefix+"_"+str(j)+suffix+"_"+"/figures/" #" gPul_offset_"+str(j)+"mScm-2/figures/"
-    path="simulation_results/"+prefix+"_"+str(j)+"_"+suffix+"_"+str(100-j)+"/figures/" #" gPul_offset_"+str(j)+"mScm-2/figures/"
+    path="simulation_results/"+prefix+j+"/figures/" #" gPul_offset_"+str(j)+"mScm-2/figures/"
     with open(path+'hit_rates.txt', 'r') as file:
         these_hit_rates = [float(line.strip()) for line in file if line] # file.readlines()
     hit_rates[i] = these_hit_rates
@@ -74,8 +75,8 @@ for i,j in enumerate(j_list):
 mean_hit_rate = [mean(hr) for hr in hit_rates]
 
 figure()
-plot(j_list, mean_hit_rate,'ko--', markersize=12)
-xticks(j_list)
+plot(j_labels, mean_hit_rate,'ko--', markersize=12)
+xticks(j_labels)
 xlabel(description) #)
 ylabel('mean hit rate')
 
@@ -83,7 +84,7 @@ figure(figsize=(10,6))
 # imshow(hit_rates) #liste_target_time, j_list, hit_rates)
 for i,j in enumerate(j_list):
     #plot(liste_target_time, hit_rates[i], color=colors[i], label=str(j)+suffix, alpha=0.75, linewidth=2)
-    plot(liste_target_time, hit_rates[i], color=colors[i], label=str(j)+", "+str(100-j), alpha=0.75, linewidth=2)
+    plot(liste_target_time, hit_rates[i], color=colors[i], label=j_labels[i], alpha=0.75, linewidth=2)
 xlabel('target time (s)')
 ylabel('hit rate')
 legend(loc='best', frameon=False, title=short_description)
@@ -91,7 +92,7 @@ legend(loc='best', frameon=False, title=short_description)
 figure()
 for i,j in enumerate(j_list):
     #plot(f, spectra[i], color=colors[i], label=str(j)+suffix, alpha = 0.75, linewidth=2.5)
-    plot(f, spectra[i], color=colors[i], label=str(j)+", "+str(100-j), alpha = 0.75, linewidth=2.5)
+    plot(f, spectra[i], color=colors[i], label=j_labels[i], alpha = 0.75, linewidth=2.5)
 xlabel('frequency (Hz)')
 ylabel('power')
 legend(loc='upper right', frameon=False, title=short_description)

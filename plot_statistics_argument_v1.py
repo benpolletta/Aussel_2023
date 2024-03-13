@@ -54,7 +54,7 @@ from scipy.stats import spearmanr
 # res_folder='with_noise_0_10_2804'
 # res_folder='with_noise_0_3_triple_0405'
 # res_folder='poisson2ms'
-res_folder = sys.argv[1] #"Jbegin_50_Jend_50"
+# res_folder = sys.argv[1] #"Jbegin_50_Jend_50"
 
 res_folder = "sim"
 for i,arg in enumerate(sys.argv):

@@ -54,7 +54,7 @@ def save_raster(name,raster_i,raster_t,path):
     raster_file.close()
     return
     
-def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):  
+def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase,duty_cycle):  
     
     NN=1 #multiplicative factor on the number of neurons
     N_RS,N_FS,N_SI,N_IB= NN*80,NN*20,NN*20,NN*20 #Number of neurons of RE, TC, and HTC type
@@ -199,7 +199,8 @@ def make_full_network(syn_cond,J,thal,t_SI,t_FS,theta_phase):
 
     if theta_phase=='mixed':
         t0=0*ms
-        t1=125*ms
+        #t1=125*ms
+        t1=250*ms*duty_cycle
         inputs_mdpul=generate_spike_timing(N_FS,13*Hz,t0,end_time=t1)
         while t0+250*ms<runtime:
             t0,t1=t0+250*ms,t1+250*ms
